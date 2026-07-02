@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<!-- ═══ BRAND BLOCK W1: SEO head for the world map ═══ -->
+<title>Barbie World — explore the catalog as a town | DollScout</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='88'%3E💖%3C/text%3E%3C/svg%3E">
+<meta name="description" content="Barbie World: every collector doll in the DollScout catalog rendered as a figure in an explorable 3D town. Descend into themed districts, tap a doll for details, and buy at the shop that sells her.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#8ed0ee">
+<link rel="canonical" href="https://www.dollscout.com/world">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DollScout">
+<meta property="og:url" content="https://www.dollscout.com/world">
+<meta property="og:title" content="Barbie World — the catalog, rendered as a town">
+<meta property="og:description" content="Explore an island of collector Barbie dolls: themed districts, figures you can tap, and a shop link for every one.">
+<meta property="og:image" content="https://www.dollscout.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Barbie World — the catalog, rendered as a town">
+<meta name="twitter:description" content="Explore an island of collector Barbie dolls: themed districts, figures you can tap, and a shop link for every one.">
+<meta name="twitter:image" content="https://www.dollscout.com/og-image.png">
+<!-- ═══ /BRAND BLOCK W1 ═══ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Dancing+Script:wght@600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink:      #e0218a;
+    --pink-deep: #bc1573;
+    --ink:       #1a1013;
+    --paper:     #ffffff;
+    --mauve:     #7a6570;
+    --line:      #e4d5db;
+    --sky-hi:    #aee0f6;
+    --sky-lo:    #dff2fb;
+    --sea:       #6fbfe0;
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Archivo", system-ui, sans-serif;
+    --script: "Dancing Script", cursive;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden;
+    font-family: var(--sans); color: var(--ink);
+    overscroll-behavior: none; }
+  button { font-family: inherit; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+  /* ============ 3D SCENE ============ */
+  /* One composited transform on #camera moves the whole world; every child is
+     placed once and never re-transformed, so pan/zoom stays a single-layer op. */
+  #viewport { position: fixed; inset: 0; overflow: hidden; touch-action: none;
+    perspective: 1050px; perspective-origin: 50% 38%; cursor: grab;
+    background:
+      radial-gradient(120% 60% at 50% -8%, #ffffff 0%, rgba(255,255,255,0) 55%),
+      linear-gradient(180deg, var(--sky-hi) 0%, var(--sky-lo) 42%, var(--sea) 43%, #4ea6cc 100%);
+  }
+  #viewport.dragging { cursor: grabbing; }
+  #camera { position: absolute; left: 50%; top: 50%; width: 0; height: 0;
+    transform-style: preserve-3d; }
+
+  /* Flat things lying on the ground plane */
+  .flat { position: absolute; pointer-events: none; }
+  #sea { width: 7000px; height: 7000px; left: -3500px; top: -3500px; border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,.28) 0%, rgba(255,255,255,0) 24%),
+      repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.10) 0 26px, rgba(255,255,255,0) 26px 92px),
+      radial-gradient(circle at 50% 50%, #79c7e6 0%, #58aed4 46%, #3d92bd 78%, #2f7fae 100%);
+  }
+  .shore { border-radius: 50%; background: #f4e7c3;
+    box-shadow: 0 0 60px 46px rgba(244, 231, 195, .55); }
+  .ground { border-radius: 50%; }
+  .road { background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.85) 0 16px, rgba(255,255,255,0) 16px 34px) center / 100% 3px no-repeat,
+      #e9cfd9;
+    border-radius: 12px; box-shadow: 0 0 0 5px rgba(233, 207, 217, .45); }
+  #plaza { border-radius: 50%;
+    background:
+      radial-gradient(circle, #ffffff 0 14%, rgba(255,255,255,0) 15%),
+      repeating-conic-gradient(#f7bcd8 0 15deg, #fbd8e9 15deg 30deg); 
+    box-shadow: 0 0 0 12px #e9cfd9, 0 0 0 17px rgba(233,207,217,.4); }
+  .lake { border-radius: 46% 54% 52% 48%;
+    background: radial-gradient(circle at 40% 35%, #bfe9f7 0%, #7cc6e2 70%); }
+
+  /* 3D box faces (low-poly buildings) */
+  .b3 { position: absolute; transform-style: preserve-3d; pointer-events: none; }
+  .f { position: absolute; backface-visibility: visible; }
+
+  /* Billboards: stand up out of the ground and face the camera.
+     rotateX(-57deg) exactly cancels the camera tilt below. */
+  .bb { position: absolute; transform-origin: 50% 100%;
+    transform: translate(-50%, -100%) rotateX(-57deg);
+    pointer-events: none; }
+  .bb .lift { display: flex; flex-direction: column; align-items: center; }
+
+  /* District banner */
+  .banner { text-align: center; }
+  .banner .b-pill { display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,.94); border: 2px solid rgba(26,16,19,.85); border-radius: 999px;
+    padding: 6px 14px; font-weight: 800; font-size: 19px; letter-spacing: .01em; white-space: nowrap;
+    box-shadow: 0 10px 24px rgba(26,16,19,.18); }
+  .banner .b-count { font-weight: 600; font-size: 14px; color: var(--mauve); }
+  .banner .b-stick { width: 3px; height: 46px; margin: 0 auto;
+    background: linear-gradient(180deg, rgba(26,16,19,.55), rgba(26,16,19,0)); }
+
+  /* Doll figures */
+  .fig { pointer-events: auto; background: none; border: 0; padding: 0; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; }
+  .fig .lift { transition: transform .18s ease; }
+  .fig:hover .lift, .fig:focus-visible .lift { transform: translateY(-7px) scale(1.06); }
+  .fig:focus-visible { outline: none; }
+  .fig:focus-visible .doll { box-shadow: 0 0 0 4px var(--pink); }
+  .pill { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 7px;
+    background: #fff; border: 1.5px solid rgba(26,16,19,.9); border-radius: 999px;
+    padding: 3px 10px 3px 6px; font-size: 12.5px; font-weight: 700; white-space: nowrap;
+    box-shadow: 0 6px 16px rgba(26,16,19,.22); max-width: 190px; }
+  .pill .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--pink); flex: none;
+    background-size: cover; background-position: center; }
+  .pill .nm { overflow: hidden; text-overflow: ellipsis; max-width: 108px; }
+  .pill .pr { color: var(--pink-deep); font-weight: 800; }
+  .fig .pill { visibility: hidden; }
+  body.near .fig .pill, .fig.feat .pill, .fig:hover .pill, .fig.hit .pill { visibility: visible; }
+  .doll { width: 54px; height: 72px; border-radius: 26px 26px 10px 10px; overflow: hidden;
+    border: 3px solid #fff; outline: 1.5px solid rgba(26,16,19,.35);
+    background: #fde3ef; box-shadow: 0 12px 22px rgba(26,16,19,.28); }
+  .doll img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+  .fig .stand { width: 34px; height: 9px; border-radius: 50%; margin-top: 3px;
+    background: rgba(26,16,19,.30); filter: blur(1.5px); }
+  .fig.hit .doll { box-shadow: 0 0 0 4px var(--pink), 0 12px 22px rgba(26,16,19,.28); }
+
+  /* decor billboards (palms, trees, balloons…) */
+  .decor { font-size: 54px; line-height: 1; text-shadow: 0 14px 18px rgba(26,16,19,.18); }
+
+  /* clouds */
+  .cloud { width: 190px; height: 58px; border-radius: 999px; background: rgba(255,255,255,.92);
+    box-shadow: 34px -16px 0 -6px rgba(255,255,255,.88), -38px -12px 0 -10px rgba(255,255,255,.85),
+                0 18px 40px rgba(70,130,160,.25); }
+  @keyframes drift { from { transform: translate(-50%,-100%) rotateX(-57deg) translateX(-40px); }
+                     to   { transform: translate(-50%,-100%) rotateX(-57deg) translateX(40px); } }
+  .cloudbb { animation: drift 14s ease-in-out infinite alternate; }
+
+  /* ============ HUD ============ */
+  .hud-top { position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+    display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+    pointer-events: none; }
+  .hud-top > * { pointer-events: auto; }
+  .backbtn { display: inline-flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px; flex: none; border-radius: 50%; border: 0; cursor: pointer;
+    background: var(--ink); color: #fff; font-size: 19px; text-decoration: none;
+    box-shadow: 0 8px 20px rgba(26,16,19,.25); }
+  .searchwrap { position: relative; flex: 1; max-width: 420px; }
+  #wq { width: 100%; height: 44px; border-radius: 999px; border: 0; padding: 0 44px 0 18px;
+    font: 500 15px var(--sans); background: rgba(255,255,255,.96); color: var(--ink);
+    box-shadow: 0 10px 26px rgba(26,16,19,.18); outline: none; }
+  #wq::placeholder { color: #9b8a92; }
+  #wq:focus { box-shadow: 0 10px 26px rgba(26,16,19,.18), 0 0 0 3px rgba(224,33,138,.4); }
+  .searchwrap .glass { position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+    color: #9b8a92; pointer-events: none; }
+  #wsuggest { position: absolute; top: 50px; left: 0; right: 0; z-index: 40; display: none;
+    background: #fff; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 18px 48px rgba(26,16,19,.28); }
+  #wsuggest.open { display: block; }
+  #wsuggest button { display: flex; width: 100%; align-items: center; gap: 10px; border: 0;
+    background: none; padding: 9px 14px; cursor: pointer; text-align: left; font-size: 14px; }
+  #wsuggest button:hover, #wsuggest button:focus-visible { background: #fdeef6; outline: none; }
+  #wsuggest img { width: 34px; height: 34px; border-radius: 9px; object-fit: cover; flex: none; }
+  #wsuggest .s-t { flex: 1; min-width: 0; }
+  #wsuggest .s-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #wsuggest .s-sub { font-size: 12px; color: var(--mauve); }
+  #wsuggest .s-pr { font-weight: 800; color: var(--pink-deep); font-size: 13px; flex: none; }
+  .wordmark { margin-left: auto; font-family: var(--script); font-weight: 700; font-size: 26px;
+    color: var(--ink); text-decoration: none; background: rgba(255,255,255,.9);
+    padding: 4px 16px 7px; border-radius: 999px; box-shadow: 0 8px 20px rgba(26,16,19,.15); }
+  .wordmark em { font-style: normal; color: var(--pink); }
+  @media (max-width: 640px) { .wordmark { display: none; } }
+
+  /* bottom district chips */
+  .hud-bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+    display: flex; align-items: flex-end; gap: 10px; pointer-events: none; }
+  .chiprow { flex: 1; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+    pointer-events: auto; padding: 6px 2px; -webkit-overflow-scrolling: touch; }
+  .chiprow::-webkit-scrollbar { display: none; }
+  .dchip { flex: none; display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+    border: 0; border-radius: 999px; padding: 9px 15px; font-size: 13.5px; font-weight: 700;
+    background: rgba(255,255,255,.95); color: var(--ink); box-shadow: 0 8px 20px rgba(26,16,19,.18);
+    white-space: nowrap; }
+  .dchip:hover { background: #fdeef6; }
+  .dchip.on { background: var(--ink); color: #fff; }
+  .dchip .n { font-weight: 500; opacity: .7; font-size: 12px; }
+  .ctrlbtn { flex: none; pointer-events: auto; display: inline-flex; align-items: center; gap: 8px;
+    border: 0; border-radius: 999px; padding: 11px 16px; cursor: pointer; margin-bottom: 6px;
+    background: var(--ink); color: #fff; font-size: 12px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; box-shadow: 0 8px 20px rgba(26,16,19,.3); }
+
+  /* zoom rail (desktop) */
+  .zoomrail { position: fixed; right: 14px; top: 50%; transform: translateY(-50%); z-index: 30;
+    display: flex; flex-direction: column; gap: 8px; }
+  .zoomrail button { width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer;
+    background: rgba(255,255,255,.95); color: var(--ink); font-size: 20px; font-weight: 700;
+    box-shadow: 0 8px 20px rgba(26,16,19,.2); }
+  .zoomrail button:hover { background: #fdeef6; }
+  @media (max-width: 640px), (pointer: coarse) { .zoomrail { display: none; } }
+
+  /* status toast */
+  #status { position: fixed; top: 66px; left: 50%; transform: translateX(-50%); z-index: 25;
+    background: rgba(26,16,19,.82); color: #fff; font-size: 12.5px; font-weight: 600;
+    border-radius: 999px; padding: 7px 16px; pointer-events: none; opacity: 0; transition: opacity .3s; }
+  #status.show { opacity: 1; }
+
+  /* ============ INTRO CARD (atlas-style) ============ */
+  #intro { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center;
+    justify-content: center; padding: 22px; pointer-events: none; }
+  #intro .card { pointer-events: auto; position: relative; max-width: 520px; text-align: center;
+    background: rgba(255,252,250,.96); border-radius: 26px; padding: 34px 34px 30px;
+    box-shadow: 0 30px 80px rgba(26,16,19,.35); border: 1px solid rgba(224,33,138,.18);
+    animation: introin .7s cubic-bezier(.2,.9,.25,1) both; }
+  @keyframes introin { from { opacity: 0; transform: translateY(26px) scale(.96); }
+                       to   { opacity: 1; transform: none; } }
+  #intro .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .34em;
+    text-transform: uppercase; color: var(--pink-deep); }
+  #intro h1 { font-family: var(--serif); font-weight: 900; font-size: clamp(38px, 9vw, 58px);
+    letter-spacing: -.01em; margin: 10px 0 8px; line-height: .98; }
+  #intro h1 em { font-style: normal; color: var(--pink); }
+  #intro p { font-family: var(--serif); font-style: italic; font-size: 16.5px; color: #4c3b43;
+    margin: 0 0 6px; }
+  #intro .hint { font-family: var(--sans); font-style: normal; font-size: 12.5px; font-weight: 600;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--mauve); margin-top: 14px; }
+  #intro .x { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px;
+    border-radius: 50%; border: 1px solid var(--line); background: #fff; font-size: 17px;
+    cursor: pointer; color: var(--ink); }
+  #intro.gone { display: none; }
+
+  /* controls hint sheet */
+  #ctrlcard { position: fixed; left: 14px; bottom: 76px; z-index: 40; display: none;
+    background: rgba(255,255,255,.97); border-radius: 18px; padding: 16px 20px;
+    box-shadow: 0 18px 48px rgba(26,16,19,.3); font-size: 13.5px; max-width: 290px; }
+  #ctrlcard.open { display: block; }
+  #ctrlcard h3 { margin: 0 0 8px; font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--pink-deep); }
+  #ctrlcard div { display: flex; justify-content: space-between; gap: 18px; padding: 3px 0; }
+  #ctrlcard b { font-weight: 700; }
+  #ctrlcard span { color: var(--mauve); }
+
+  /* ============ DETAIL CARD ============ */
+  #dmodal { position: fixed; inset: 0; z-index: 60; display: none; }
+  #dmodal.open { display: block; }
+  #dmodal .scrim { position: absolute; inset: 0; background: rgba(26,16,19,.45);
+    backdrop-filter: blur(2px); }
+  .dcard { position: absolute; background: #fff; overflow: hidden;
+    box-shadow: 0 30px 90px rgba(26,16,19,.4); }
+  @media (min-width: 721px) {
+    .dcard { left: 50%; top: 50%; transform: translate(-50%,-50%); width: min(820px, calc(100vw - 48px));
+      max-height: calc(100vh - 64px); border-radius: 24px; display: grid;
+      grid-template-columns: 45% 55%; }
+  }
+  @media (max-width: 720px) {
+    .dcard { left: 0; right: 0; bottom: 0; max-height: 86vh; border-radius: 22px 22px 0 0;
+      display: flex; flex-direction: column; animation: sheetup .32s cubic-bezier(.2,.9,.25,1) both; }
+    @keyframes sheetup { from { transform: translateY(60%); opacity: .4; } to { transform: none; opacity: 1; } }
+  }
+  .dgallery { background: #f8eef3; position: relative; min-height: 220px; }
+  .dmain { width: 100%; height: 100%; min-height: 220px; max-height: 42vh; object-fit: contain; display: block; }
+  @media (min-width: 721px) { .dmain { max-height: none; height: 100%; position: absolute; inset: 0; } }
+  .dthumbs { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .dthumbs button { width: 44px; height: 44px; border-radius: 10px; border: 2px solid #fff; padding: 0;
+    overflow: hidden; cursor: pointer; background: #fff; box-shadow: 0 4px 12px rgba(26,16,19,.25); }
+  .dthumbs button.on { border-color: var(--pink); }
+  .dthumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dinfo { padding: 24px 26px 22px; overflow-y: auto; }
+  .dgrip { width: 44px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 12px; }
+  @media (min-width: 721px) { .dgrip { display: none; } }
+  .dhouse { font-size: 11.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--pink-deep); }
+  .ddistrict { display: inline-block; margin-left: 8px; font-size: 11.5px; font-weight: 600;
+    color: var(--mauve); letter-spacing: .05em; text-transform: none; }
+  .dtitle { font-family: var(--serif); font-weight: 600; font-size: 23px; line-height: 1.18;
+    margin: 8px 0 6px; }
+  .dprice { font-size: 20px; font-weight: 800; color: var(--ink); }
+  .drate { color: #7a5b24; font-size: 13.5px; margin-top: 2px; }
+  .ddesc { font-size: 14px; color: #4c3b43; line-height: 1.55; margin: 12px 0 18px;
+    max-height: 132px; overflow-y: auto; }
+  .dactions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+  .dbuy { flex: 1 1 180px; display: inline-flex; align-items: center; justify-content: center;
+    height: 50px; border-radius: 999px; background: var(--pink); color: #fff; font-weight: 800;
+    font-size: 15.5px; text-decoration: none; letter-spacing: .02em;
+    box-shadow: 0 10px 26px rgba(224,33,138,.4); }
+  .dbuy:hover { background: var(--pink-deep); }
+  .dview { font-size: 14px; font-weight: 600; color: var(--ink); text-decoration: none;
+    border-bottom: 1.5px solid var(--ink); padding-bottom: 2px; }
+  .dview:hover { color: var(--pink-deep); border-color: var(--pink-deep); }
+  .dfine { margin-top: 12px; font-size: 11.5px; color: var(--mauve); }
+  .dx { position: absolute; top: 12px; right: 12px; z-index: 2; width: 36px; height: 36px;
+    border-radius: 50%; border: 0; background: rgba(255,255,255,.92); font-size: 18px;
+    cursor: pointer; box-shadow: 0 6px 16px rgba(26,16,19,.25); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cloudbb { animation: none; }
+    .fig .lift { transition: none; }
+    #intro .card, .dcard { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="viewport" aria-label="Barbie World map. Drag to explore, scroll or pinch to zoom.">
+  <div id="camera"></div>
+</div>
+
+<header class="hud-top">
+  <a class="backbtn" href="/" title="Back to the finder" aria-label="Back to DollScout">←</a>
+  <div class="searchwrap">
+    <input id="wq" type="text" placeholder="Search dolls in the world…" autocomplete="off"
+           role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="wsuggest">
+    <span class="glass" aria-hidden="true">⌕</span>
+    <div id="wsuggest" role="listbox" aria-label="Matching dolls"></div>
+  </div>
+  <!-- ═══ BRAND BLOCK W2: HUD wordmark ═══ -->
+  <a class="wordmark" href="/">Doll<em>Scout</em></a>
+  <!-- ═══ /BRAND BLOCK W2 ═══ -->
+</header>
+
+<div id="status" role="status" aria-live="polite"></div>
+
+<div class="zoomrail">
+  <button type="button" aria-label="Zoom in" onclick="nudgeZoom(340)">+</button>
+  <button type="button" aria-label="Zoom out" onclick="nudgeZoom(-340)">−</button>
+</div>
+
+<div id="intro">
+  <div class="card">
+    <button class="x" type="button" aria-label="Close intro" onclick="closeIntro()">×</button>
+    <!-- ═══ BRAND BLOCK W3: intro card copy ═══ -->
+    <div class="eyebrow">A world of who sells what</div>
+    <h1>BARBIE <em>WORLD</em></h1>
+    <p id="introTagline">The catalog, rendered — every doll a figure in a town you can explore.</p>
+    <div class="hint">Scroll to descend · Drag to explore · Tap a doll</div>
+    <!-- ═══ /BRAND BLOCK W3 ═══ -->
+  </div>
+</div>
+
+<div id="ctrlcard" role="dialog" aria-label="Controls">
+  <h3>Controls</h3>
+  <div><b>Drag / swipe</b><span>move around</span></div>
+  <div><b>Scroll / pinch</b><span>descend &amp; rise</span></div>
+  <div><b>Arrow keys · WASD</b><span>move</span></div>
+  <div><b>+ / −</b><span>zoom</span></div>
+  <div><b>Tap a doll</b><span>details &amp; buy</span></div>
+  <div><b>District chips</b><span>fly there</span></div>
+</div>
+
+<nav class="hud-bottom">
+  <button class="ctrlbtn" type="button" onclick="toggleCtrl()" aria-expanded="false" aria-controls="ctrlcard">☰ Controls</button>
+  <div class="chiprow" id="chiprow" aria-label="Districts"></div>
+</nav>
+
+<div id="dmodal" role="dialog" aria-modal="true" aria-labelledby="d-title">
+  <div class="scrim" data-close></div>
+  <div class="dcard">
+    <button class="dx" type="button" data-close aria-label="Close doll details">×</button>
+    <div class="dgallery">
+      <img class="dmain" id="d-main" alt="">
+      <div class="dthumbs" id="d-thumbs"></div>
+    </div>
+    <div class="dinfo">
+      <div class="dgrip" aria-hidden="true"></div>
+      <div><span class="dhouse" id="d-house"></span><span class="ddistrict" id="d-district"></span></div>
+      <h2 class="dtitle" id="d-title"></h2>
+      <div class="dprice" id="d-price"></div>
+      <div class="drate" id="d-rate"></div>
+      <p class="ddesc" id="d-desc"></p>
+      <div class="dactions" id="d-actions"></div>
+      <!-- ═══ BRAND BLOCK W4: detail-card fine print ═══ -->
+      <p class="dfine">Sold by the independent shop above — DollScout links you out and never takes payment.</p>
+      <!-- ═══ /BRAND BLOCK W4 ═══ -->
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ═══ BRAND BLOCK W5: JS brand constants ═══ */
+const NOUN = 'doll', NOUNS = 'dolls';
+/* ═══ /BRAND BLOCK W5 ═══ */
+
+const TILT = 57;                       // camera pitch (deg); .bb billboards counter-rotate by -TILT
+const PERSP = 1050;                    // must match #viewport perspective
+const DOLLY_MIN = -3000, DOLLY_MAX = 520;
+const NEAR_AT = 100;                   // dolly beyond which every doll's pill appears (street level)
+const PAN_LIMIT = { x: 820, z: 760 };
+const MAX_FIGS = 14;                   // dolls placed per district
+const FIG_MIN_GAP = 68;                // min distance between figures (world px)
+
+const camera = document.getElementById('camera');
+const viewport = document.getElementById('viewport');
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let cam = { x: 0, z: 0, dolly: -3400 };
+let world = null;                      // /api/world payload
+let figures = [];                      // {card, area, x, z, el}
+let flyAnim = null;
+
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function safeUrl(u) {
+  if (!u) return null;
+  try { const p = new URL(u, location.href); return (p.protocol === 'https:' || p.protocol === 'http:') ? p.href : null; }
+  catch { return null; }
+}
+
+/* ---------- camera ---------- */
+function applyCam() {
+  cam.x = Math.max(-PAN_LIMIT.x, Math.min(PAN_LIMIT.x, cam.x));
+  cam.z = Math.max(-PAN_LIMIT.z, Math.min(PAN_LIMIT.z, cam.z));
+  cam.dolly = Math.max(DOLLY_MIN, Math.min(DOLLY_MAX, cam.dolly));
+  camera.style.transform =
+    `translate3d(0px, 0px, ${cam.dolly}px) rotateX(${TILT}deg) translate3d(${-cam.x}px, ${-cam.z}px, 0px)`;
+  document.body.classList.toggle('near', cam.dolly > NEAR_AT);
+}
+function groundScale() { return PERSP / Math.max(120, PERSP - cam.dolly); }
+function nudgeZoom(d) { flyAnim = null; cam.dolly += d; applyCam(); }
+
+function flyTo(x, z, dolly, ms = 1000, done) {
+  const from = { ...cam }, to = { x, z, dolly };
+  if (reduceMotion) { cam = { ...to }; applyCam(); done && done(); return; }
+  const t0 = performance.now(), token = flyAnim = {};
+  (function step(now) {
+    if (flyAnim !== token) return;
+    const t = Math.min(1, (now - t0) / ms);
+    const e = t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;   // easeInOutCubic
+    cam.x = from.x + (to.x - from.x) * e;
+    cam.z = from.z + (to.z - from.z) * e;
+    cam.dolly = from.dolly + (to.dolly - from.dolly) * e;
+    applyCam();
+    if (t < 1) requestAnimationFrame(step); else { flyAnim = null; done && done(); }
+  })(t0);
+}
+
+/* ---------- scene building ---------- */
+function el(cls, styles) {
+  const d = document.createElement('div');
+  d.className = cls;
+  Object.assign(d.style, styles || {});
+  return d;
+}
+function flat(cls, x, z, w, h, extra) {
+  const d = el('flat ' + cls, {
+    left: (x - w / 2) + 'px', top: (z - h / 2) + 'px',
+    width: w + 'px', height: h + 'px', ...extra,
+  });
+  camera.appendChild(d);
+  return d;
+}
+function billboard(x, z, html, cls) {
+  const d = document.createElement('div');
+  d.className = 'bb' + (cls ? ' ' + cls : '');
+  d.style.left = x + 'px';
+  d.style.top = z + 'px';
+  d.innerHTML = html;
+  camera.appendChild(d);
+  return d;
+}
+function shade(hex, f) {                       // simple per-face lighting
+  const n = parseInt(hex.slice(1), 16);
+  const ch = i => Math.max(0, Math.min(255, Math.round(((n >> i) & 255) * f)));
+  return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
+}
+function box(x, z, w, d, h, color, topColor) {
+  const b = el('b3', { left: (x - w/2) + 'px', top: (z - d/2) + 'px', width: w + 'px', height: d + 'px' });
+  const face = (st) => { const f = el('f', st); b.appendChild(f); return f; };
+  face({ left: 0, top: 0, width: w + 'px', height: d + 'px',                     // roof
+         background: topColor || shade(color, 1.14), transform: `translateZ(${h}px)`,
+         boxShadow: 'inset 0 0 0 2px rgba(255,255,255,.14)' });
+  face({ left: 0, top: d + 'px', width: w + 'px', height: h + 'px',              // south (camera-facing)
+         background: shade(color, 1.0), transformOrigin: '50% 0', transform: 'rotateX(90deg)' });
+  face({ left: 0, top: 0, width: w + 'px', height: h + 'px',                     // north
+         background: shade(color, .78), transformOrigin: '50% 0', transform: 'rotateX(90deg)' });
+  face({ left: 0, top: 0, width: d + 'px', height: h + 'px',                     // west
+         background: shade(color, .68), transformOrigin: '0 0', transform: 'rotateZ(90deg) rotateX(90deg)' });
+  face({ left: w + 'px', top: 0, width: d + 'px', height: h + 'px',              // east
+         background: shade(color, .88), transformOrigin: '0 0', transform: 'rotateZ(90deg) rotateX(90deg)' });
+  camera.appendChild(b);
+  return b;
+}
+
+/* per-district landmark kits (low-poly boxes + emoji billboards) */
+const KITS = {
+  dreamhouse(a, P) {
+    box(a.x, a.z - 14, 96, 66, 92, P[0], '#ffffff');
+    box(a.x - 66, a.z + 8, 46, 44, 56, P[1]);
+    box(a.x + 64, a.z + 6, 40, 40, 128, P[3], '#ffffff');
+    billboard(a.x + 64, a.z + 6, '<div class="decor" style="font-size:34px">💖</div>');
+    decorRing(a, ['🌸','🦩','🌷','💗']);
+  },
+  holiday(a, P) {
+    box(a.x, a.z, 84, 60, 74, P[0], '#ffffff');
+    box(a.x, a.z - 4, 60, 42, 100, P[1], '#ffffff');
+    box(a.x + 62, a.z + 22, 30, 30, 30, P[4], '#ffffff');
+    decorRing(a, ['🎄','⛄','🎁','🎄','❄️']);
+  },
+  harbor(a, P) {
+    box(a.x - 20, a.z, 40, 40, 120, '#f4f6f8', P[3]);         // lighthouse
+    box(a.x - 20, a.z, 46, 46, 26, P[3]);
+    box(a.x + 60, a.z + 10, 110, 26, 12, '#c9a26b');          // pier
+    decorRing(a, ['⛵','🌍','⚓','🕊️']);
+  },
+  park(a, P) {
+    box(a.x, a.z, 74, 74, 46, P[0], P[1]);
+    box(a.x, a.z, 40, 40, 78, P[1], P[3]);
+    decorRing(a, ['🎈','🎂','🎠','🎉','🎈']);
+  },
+  designer(a, P) {
+    box(a.x, a.z + 26, 150, 34, 10, P[1], '#f7ecd0');          // runway
+    box(a.x, a.z - 28, 90, 50, 84, P[0], P[2]);
+    decorRing(a, ['✨','🌟','👗','🥂']);
+  },
+  silkstone(a, P) {
+    box(a.x, a.z, 92, 56, 78, P[0], P[1]);
+    box(a.x, a.z + 32, 96, 14, 34, P[2]);
+    decorRing(a, ['💄','👛','👠','🕶️']);
+  },
+  beach(a, P) {
+    box(a.x, a.z, 52, 44, 40, P[0], '#ffffff');
+    box(a.x, a.z, 24, 24, 66, P[3], '#ffffff');
+    decorRing(a, ['🌴','⛱️','🏄‍♀️','🐚','🌴']);
+  },
+  vintage(a, P) {
+    box(a.x, a.z, 88, 56, 66, P[1], P[2]);
+    box(a.x + 58, a.z + 14, 34, 30, 44, P[0], P[4]);
+    decorRing(a, ['📻','🚗','🕰️','🎞️']);
+  },
+};
+function decorRing(a, emojis) {
+  emojis.forEach((e, i) => {
+    const ang = (i / emojis.length) * Math.PI * 2 + 0.6;
+    const rr = a.r * 0.86;
+    billboard(a.x + Math.cos(ang) * rr, a.z + Math.sin(ang) * rr * 0.9,
+      `<div class="decor">${e}</div>`);
+  });
+}
+
+function buildTerrain() {
+  const sea = el('flat', {}); sea.id = 'sea'; camera.appendChild(sea);
+  // island mass: shore blobs under every district + centre
+  for (const a of [...world.areas, { x: 0, z: 0, r: 300 }]) {
+    flat('shore', a.x, a.z, (a.r + 95) * 2, (a.r + 95) * 1.85);
+  }
+  // roads before grounds' figures but above shore
+  for (const a of world.areas) {
+    const dx = a.x, dz = a.z, len = Math.hypot(dx, dz);
+    const road = flat('road', dx / 2, dz / 2, len, 26);
+    road.style.transform = `rotate(${Math.atan2(dz, dx)}rad)`;
+  }
+  const plaza = el('flat', { left: '-130px', top: '-130px', width: '260px', height: '260px' });
+  plaza.id = 'plaza'; camera.appendChild(plaza);
+  billboard(0, 6, `<div class="decor" style="font-size:64px">⛲</div>`);
+  billboard(0, -40,
+    `<div class="banner"><span class="b-pill" style="font-family:var(--script);font-size:26px;padding:4px 20px 8px">` +
+    `${esc(world.name)}</span><div class="b-stick"></div></div>`);
+  for (const a of world.areas) {
+    flat('ground', a.x, a.z, a.r * 2, a.r * 1.85,
+      { background: `radial-gradient(circle, ${a.ground} 0 62%, ${shade(a.ground, .93)} 100%)` });
+    (KITS[a.style] || decorRing)(a, a.palette);
+  }
+  // clouds
+  const spots = [[-620,-520,300],[540,-620,340],[760,240,280],[-780,180,320],[80,640,300],[-240,-60,380]];
+  spots.forEach(([x, z, h], i) => {
+    const c = billboard(x, z, `<div style="height:${h}px;display:flex;align-items:flex-start"><div class="cloud"></div></div>`,
+      reduceMotion ? '' : 'cloudbb');
+    c.style.animationDelay = (-i * 2.3) + 's';
+    c.style.animationDuration = (12 + i * 2.5) + 's';
+  });
+  // district banners last so they sit above landmarks visually
+  for (const a of world.areas) {
+    const b = billboard(a.x, a.z - a.r * 0.34,
+      `<div class="banner"><span class="b-pill">${a.emoji} ${esc(a.name)} ` +
+      `<span class="b-count" data-count="${a.id}"></span></span><div class="b-stick"></div></div>`);
+    b.style.zIndex = 5;
+  }
+}
+
+/* ---------- doll figures ---------- */
+function seededRand(seedStr) {
+  let h = 2166136261 >>> 0;
+  for (const ch of seedStr) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return () => { h = Math.imul(h ^ (h >>> 15), 2246822519); h = Math.imul(h ^ (h >>> 13), 3266489917);
+                 return ((h ^= h >>> 16) >>> 0) / 4294967296; };
+}
+function placeFigures(area, cards) {
+  const rnd = seededRand(area.id), placed = [];
+  const n = Math.min(MAX_FIGS, cards.length);
+  for (let i = 0; i < n; i++) {
+    let x, z, ok = false;
+    for (let tries = 0; tries < 40 && !ok; tries++) {
+      const ang = rnd() * Math.PI * 2;
+      const rr = (0.34 + 0.58 * Math.sqrt(rnd())) * area.r;
+      x = area.x + Math.cos(ang) * rr;
+      z = area.z + Math.sin(ang) * rr * 0.82;
+      ok = placed.every(p => Math.hypot(p.x - x, p.z - z) > FIG_MIN_GAP)
+        && Math.hypot(x - area.x, z - area.z) > 78;     // keep clear of the landmark
+    }
+    placed.push({ x, z });
+    addFigure(cards[i], area, x, z, i < 2);
+  }
+  const cEl = document.querySelector(`[data-count="${area.id}"]`);
+  if (cEl) cEl.textContent = `· ${n} ${n === 1 ? NOUN : NOUNS}`;
+}
+function addFigure(card, area, x, z, featured) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'fig bb' + (featured ? ' feat' : '');
+  btn.style.left = x + 'px'; btn.style.top = z + 'px';
+  btn.setAttribute('aria-label', `${card.title} — ${card.price_display}. Open details.`);
+  const shortPrice = (card.price_display || '').replace(/\.00\b/, '').replace(/\s+\w+$/, '');
+  btn.innerHTML =
+    `<span class="lift">` +
+    `<span class="pill"><span class="dot" style="background-image:url('${esc(card.img)}')"></span>` +
+    `<span class="nm">${esc(card.title)}</span><span class="pr">${esc(shortPrice)}</span></span>` +
+    `<span class="doll"><img loading="lazy" src="${esc(card.img)}" alt=""></span>` +
+    `<span class="stand"></span></span>`;
+  btn.addEventListener('click', (e) => { if (!dragMoved) openCard(card, area); });
+  camera.appendChild(btn);
+  figures.push({ card, area, x, z, el: btn });
+}
+
+async function loadArea(area) {
+  try {
+    const r = await fetch(`/api/search?query=${encodeURIComponent(area.q)}&available=1`);
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    placeFigures(area, data.cards || []);
+  } catch (err) {
+    const cEl = document.querySelector(`[data-count="${area.id}"]`);
+    if (cEl) cEl.textContent = '· couldn\u2019t load';
+  }
+}
+async function populate() {
+  toast(`Populating the world with ${NOUNS}…`);
+  // two at a time: gentle on the search backend (semaphore + per-IP rate limit)
+  const queue = [...world.areas];
+  await Promise.all([1, 2].map(async () => {
+    while (queue.length) await loadArea(queue.shift());
+  }));
+  toast(`${figures.length} ${NOUNS} live in the world — tap one`, 3600);
+}
+
+/* ---------- input: drag / wheel / pinch / keys ----------
+   No pointer capture: move/up are tracked on window so that native `click`
+   still reaches the doll buttons (drag-vs-tap is decided by dragMoved). */
+let pointers = new Map(), dragMoved = false, lastPinch = null;
+viewport.addEventListener('pointerdown', (e) => {
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 1) dragMoved = false;
+  flyAnim = null;
+  viewport.classList.add('dragging');
+});
+window.addEventListener('pointermove', (e) => {
+  const p = pointers.get(e.pointerId);
+  if (!p) return;
+  if (pointers.size === 1) {
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    if (Math.abs(dx) + Math.abs(dy) > 4) dragMoved = true;
+    if (dragMoved) {
+      const s = groundScale();
+      cam.x -= dx / s;
+      cam.z -= dy / s / Math.cos(TILT * Math.PI / 180);
+      applyCam();
+    }
+    p.x = e.clientX; p.y = e.clientY;
+  } else if (pointers.size === 2) {
+    p.x = e.clientX; p.y = e.clientY;
+    const [a, b] = [...pointers.values()];
+    const dist = Math.hypot(a.x - b.x, a.y - b.y);
+    if (lastPinch) { cam.dolly += (dist - lastPinch) * 3.2; applyCam(); dragMoved = true; }
+    lastPinch = dist;
+  }
+});
+function endPointer(e) {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) lastPinch = null;
+  if (!pointers.size) viewport.classList.remove('dragging');
+  closeIntroSoft();
+}
+window.addEventListener('pointerup', endPointer);
+window.addEventListener('pointercancel', endPointer);
+viewport.addEventListener('wheel', (e) => {
+  e.preventDefault(); flyAnim = null;
+  cam.dolly -= e.deltaY * 1.9;
+  applyCam(); closeIntroSoft();
+}, { passive: false });
+window.addEventListener('keydown', (e) => {
+  if (e.target.matches('input, textarea')) return;
+  const s = 120 / groundScale();
+  const k = e.key.toLowerCase();
+  if (k === 'arrowup' || k === 'w') cam.z -= s;
+  else if (k === 'arrowdown' || k === 's') cam.z += s;
+  else if (k === 'arrowleft' || k === 'a') cam.x -= s;
+  else if (k === 'arrowright' || k === 'd') cam.x += s;
+  else if (k === '+' || k === '=') cam.dolly += 260;
+  else if (k === '-' || k === '_') cam.dolly -= 260;
+  else if (k === 'escape') { closeCard(); closeIntro(); return; }
+  else return;
+  e.preventDefault(); flyAnim = null; applyCam(); closeIntroSoft();
+});
+
+/* ---------- HUD ---------- */
+function toast(msg, ms = 2200) {
+  const s = document.getElementById('status');
+  s.textContent = msg; s.classList.add('show');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => s.classList.remove('show'), ms);
+}
+let introDismissed = false;
+function closeIntro() { introDismissed = true; document.getElementById('intro').classList.add('gone'); }
+function closeIntroSoft() { if (!introDismissed) closeIntro(); }
+function toggleCtrl() {
+  const c = document.getElementById('ctrlcard');
+  const open = c.classList.toggle('open');
+  document.querySelector('.ctrlbtn').setAttribute('aria-expanded', open);
+}
+function buildChips() {
+  const row = document.getElementById('chiprow');
+  for (const a of world.areas) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'dchip'; b.dataset.area = a.id;
+    b.innerHTML = `${a.emoji} ${esc(a.name)}`;
+    b.onclick = () => visitArea(a);
+    row.appendChild(b);
+  }
+}
+function visitArea(a) {
+  closeIntroSoft();
+  document.querySelectorAll('.dchip').forEach(c => c.classList.toggle('on', c.dataset.area === a.id));
+  history.replaceState(null, '', '#' + a.id);
+  flyTo(a.x, a.z, -480, 1100);
+  toast(`${a.emoji} ${a.name} — ${a.tagline}`, 3000);
+}
+
+/* ---------- search ---------- */
+const wq = document.getElementById('wq'), wsuggest = document.getElementById('wsuggest');
+wq.addEventListener('input', () => {
+  const v = wq.value.trim().toLowerCase();
+  if (v.length < 2) { wsuggest.classList.remove('open'); wq.setAttribute('aria-expanded', 'false'); return; }
+  const hits = figures.filter(f => f.card.title.toLowerCase().includes(v)).slice(0, 8);
+  wsuggest.innerHTML = hits.length ? '' : `<button type="button" disabled>No ${NOUNS} match yet</button>`;
+  hits.forEach((f, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = `<img src="${esc(f.card.img)}" alt=""><span class="s-t">` +
+      `<span class="s-name">${esc(f.card.title)}</span>` +
+      `<span class="s-sub">${f.area.emoji} ${esc(f.area.name)}</span></span>` +
+      `<span class="s-pr">${esc(f.card.price_display)}</span>`;
+    b.onclick = () => {
+      wsuggest.classList.remove('open'); wq.blur(); closeIntroSoft();
+      document.querySelectorAll('.fig.hit').forEach(x => x.classList.remove('hit'));
+      f.el.classList.add('hit');
+      flyTo(f.x, f.z - 30, 40, 1200, () => openCard(f.card, f.area));
+    };
+    wsuggest.appendChild(b);
+  });
+  wsuggest.classList.add('open');
+  wq.setAttribute('aria-expanded', 'true');
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.searchwrap')) { wsuggest.classList.remove('open'); }
+  if (!e.target.closest('#ctrlcard, .ctrlbtn')) document.getElementById('ctrlcard').classList.remove('open');
+});
+
+/* ---------- detail card ---------- */
+const dmodal = document.getElementById('dmodal');
+let gallery = [], lastFocus = null;
+function openCard(card, area) {
+  lastFocus = document.activeElement;
+  document.getElementById('d-house').textContent = card.seller_name || '';
+  document.getElementById('d-district').textContent = area ? `${area.emoji} ${area.name}` : '';
+  document.getElementById('d-title').textContent = card.title || '';
+  document.getElementById('d-price').textContent = card.price_display || '';
+  document.getElementById('d-rate').textContent = card.rating != null
+    ? '★'.repeat(Math.round(card.rating)) + '☆'.repeat(Math.max(0, 5 - Math.round(card.rating))) + ` ${card.rating}`
+    : '';
+  document.getElementById('d-desc').textContent = card.desc || '';
+  setGallery(card.images && card.images.length ? card.images : [card.img]);
+  const pdp = safeUrl(card.pdp), buy = safeUrl(card.buy);
+  const parts = [];
+  if (buy) parts.push(`<a class="dbuy" href="${buy}" target="_blank" rel="noopener noreferrer">Buy now at ${esc(card.seller_name || 'the shop')}</a>`);
+  if (pdp) parts.push(`<a class="dview" href="${pdp}" target="_blank" rel="noopener noreferrer">View at shop</a>`);
+  if (!buy && !pdp) parts.push(`<span class="dfine">No shop link available for this listing.</span>`);
+  document.getElementById('d-actions').innerHTML = parts.join('');
+  dmodal.classList.add('open');
+  document.querySelector('.dx').focus();
+  if (card.id) {                                    // enrich with full gallery + description
+    fetch(`/api/product?id=${encodeURIComponent(card.id)}`).then(r => r.json()).then(d => {
+      if (!d || d.error || !dmodal.classList.contains('open')) return;
+      if (d.desc) document.getElementById('d-desc').textContent = d.desc;
+      if (d.images && d.images.length > gallery.length) setGallery(d.images);
+    }).catch(() => {});
+  }
+}
+function setGallery(imgs) {
+  gallery = imgs.filter(Boolean).slice(0, 8);
+  const thumbs = document.getElementById('d-thumbs');
+  thumbs.innerHTML = '';
+  gallery.forEach((u, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = i === 0 ? 'on' : '';
+    b.innerHTML = `<img src="${esc(u)}" alt="">`;
+    b.setAttribute('aria-label', `Photo ${i + 1} of ${gallery.length}`);
+    b.onclick = () => showImg(i);
+    thumbs.appendChild(b);
+  });
+  if (gallery.length < 2) thumbs.innerHTML = '';
+  showImg(0);
+}
+function showImg(i) {
+  const m = document.getElementById('d-main');
+  if (gallery[i]) m.src = gallery[i]; else m.removeAttribute('src');
+  document.querySelectorAll('#d-thumbs button').forEach((b, j) => b.classList.toggle('on', i === j));
+}
+function closeCard() {
+  dmodal.classList.remove('open');
+  document.querySelectorAll('.fig.hit').forEach(x => x.classList.remove('hit'));
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+dmodal.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) closeCard(); });
+
+/* ---------- boot ---------- */
+async function boot() {
+  applyCam();
+  try {
+    const r = await fetch('/api/world');
+    world = await r.json();
+  } catch { toast('Could not load the world config.', 6000); return; }
+  const tag = document.getElementById('introTagline');
+  if (world.tagline) tag.textContent = world.tagline;
+  buildTerrain();
+  buildChips();
+  populate();
+  // descend from the sky onto the plaza
+  flyTo(0, 40, -2050, reduceMotion ? 0 : 1900);
+  const wanted = world.areas.find(a => a.id === location.hash.slice(1));
+  if (wanted) setTimeout(() => visitArea(wanted), reduceMotion ? 0 : 2100);
+}
+boot();
+</script>
+</body>
+</html>

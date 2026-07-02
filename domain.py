@@ -64,6 +64,85 @@ DEEP_LINK_DESC = ("Find {q} collector Barbie dolls across thousands of independe
 # silently stops updating. (RETARGETING.md step 3.)
 DEFAULT_META_TITLE = "DollScout — The Unofficial Collector Barbie Finder"
 
+# --- Barbie World (/world) ---------------------------------------------------
+
+# Config for the immersive 3D map at /world: a navigable low-poly town where
+# every doll in the catalog stands as a figure in a themed district. Each
+# area's ``q`` runs through the exact same /api/search pipeline (query anchor
+# + brand relevance guard), so the dolls that populate a district genuinely
+# match its theme. ``style`` picks that district's 3D landmark/decor set in
+# world.html; ``x``/``z``/``r`` place it on the island (world units, plaza at
+# origin); ``ground``/``accent``/``palette`` drive terrain + building colors.
+WORLD_NAME = "Barbie World"
+WORLD_TAGLINE = ("The catalog, rendered — every doll a figure in a town you can "
+                 "explore. Descend to discover.")
+WORLD_AREAS = [
+    {
+        "id": "dreamhouse-heights", "name": "Dreamhouse Heights", "emoji": "🏰",
+        "tagline": "Barbie Signature on the hill",
+        "q": "Barbie Signature collector doll",
+        "style": "dreamhouse", "x": 0, "z": -470, "r": 205,
+        "ground": "#f7a8cd", "accent": "#e0218a",
+        "palette": ["#ff7fb8", "#ffa1c9", "#ffc2dc", "#f06aa8", "#ffd9e9"],
+    },
+    {
+        "id": "holiday-village", "name": "Holiday Village", "emoji": "🎄",
+        "tagline": "Holiday Barbie, every year of her",
+        "q": "Holiday Barbie",
+        "style": "holiday", "x": 385, "z": -350, "r": 190,
+        "ground": "#eef6fb", "accent": "#2b7bb9",
+        "palette": ["#d9534f", "#3d7d4f", "#f2f7fa", "#c8dff0", "#e8b04b"],
+    },
+    {
+        "id": "world-tour-harbor", "name": "World Tour Harbor", "emoji": "🌍",
+        "tagline": "Dolls of the World at the docks",
+        "q": "Dolls of the World Barbie",
+        "style": "harbor", "x": 545, "z": 40, "r": 185,
+        "ground": "#bfe3d8", "accent": "#17766d",
+        "palette": ["#2e8f86", "#54b0a5", "#e7d9a8", "#c96f4a", "#7fc8bd"],
+    },
+    {
+        "id": "birthday-park", "name": "Birthday Park", "emoji": "🎈",
+        "tagline": "Birthday Wishes under the balloons",
+        "q": "Birthday Wishes Barbie",
+        "style": "park", "x": 380, "z": 380, "r": 185,
+        "ground": "#cdebb4", "accent": "#3f8f2f",
+        "palette": ["#ffd166", "#ef767a", "#7bc47f", "#f9a03f", "#b5e2fa"],
+    },
+    {
+        "id": "designer-row", "name": "Designer Row", "emoji": "✨",
+        "tagline": "Bob Mackie glamour, gowns & gold",
+        "q": "Bob Mackie Barbie",
+        "style": "designer", "x": 0, "z": 500, "r": 195,
+        "ground": "#f4dfae", "accent": "#8a6a12",
+        "palette": ["#caa84a", "#e6c877", "#8d6b1f", "#f3e3b5", "#b28f34"],
+    },
+    {
+        "id": "silkstone-salon", "name": "Silkstone Salon", "emoji": "💄",
+        "tagline": "The Fashion Model Collection quarter",
+        "q": "Silkstone Fashion Model Collection Barbie",
+        "style": "silkstone", "x": -385, "z": 375, "r": 185,
+        "ground": "#e6d4ee", "accent": "#7a4b9d",
+        "palette": ["#3a3140", "#f5eef8", "#a583bd", "#d0b7de", "#63527a"],
+    },
+    {
+        "id": "malibu-beach", "name": "Malibu Beach", "emoji": "🌴",
+        "tagline": "Sun, surf & vintage Malibu",
+        "q": "Malibu Barbie beach",
+        "style": "beach", "x": -560, "z": 25, "r": 180,
+        "ground": "#fbe6ad", "accent": "#0f7ea8",
+        "palette": ["#ffb45e", "#5ec8dd", "#fff0c6", "#ff8b6a", "#79d0c1"],
+    },
+    {
+        "id": "vintage-quarter", "name": "Vintage Quarter", "emoji": "📻",
+        "tagline": "1959 & the swinging decades",
+        "q": "vintage 1960s Barbie",
+        "style": "vintage", "x": -390, "z": -350, "r": 190,
+        "ground": "#ecd9b0", "accent": "#a05f18",
+        "palette": ["#d8a24a", "#b7743a", "#e9d3a0", "#8f5b2c", "#f0e2c0"],
+    },
+]
+
 # --- Chip taxonomy -----------------------------------------------------------
 
 # Authored public-knowledge taxonomy of Barbie collecting terms: common Barbie

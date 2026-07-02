@@ -23,6 +23,7 @@ Every constant, with its DollScout value and what to change it to:
 | `DEEP_LINK_TITLE` / `DEEP_LINK_DESC` | Barbie phrasing | `<title>`/description templates for `/?q=` deep-links. Keep the `{q}` placeholder |
 | `DEFAULT_META_TITLE` | DollScout og:title | See the coupling trap below |
 | `TAXONOMY` | Barbie chip vocabulary | Your niche's filter chips: groups of `{"label", "q"}` where `q` is appended to the query. Dict order = display order |
+| `WORLD_NAME` / `WORLD_TAGLINE` / `WORLD_AREAS` | Barbie World districts | The `/world` map. Each area is a themed district: its `q` populates it via the normal search pipeline, `style` picks a landmark kit in `world.html`, `x`/`z`/`r` place it on the island. Delete `WORLD_AREAS` to disable `/world` entirely; also walk the `BRAND BLOCK W1–W5` fences in `world.html` |
 
 ## 2. `index.html`: six fenced brand blocks
 

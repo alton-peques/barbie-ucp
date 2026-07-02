@@ -152,6 +152,8 @@ ROBOTS_TXT = (
 
 def _build_sitemap():
     rows = [f"  <url><loc>{domain.SITE_ORIGIN}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>"]
+    if getattr(domain, "WORLD_AREAS", None):
+        rows.append(f"  <url><loc>{domain.SITE_ORIGIN}/world</loc><changefreq>daily</changefreq><priority>0.8</priority></url>")
     for term in domain.POPULAR_QUERIES:
         loc = f"{domain.SITE_ORIGIN}/?q={quote(term)}"
         rows.append(f"  <url><loc>{loc}</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>")
@@ -513,6 +515,14 @@ class Handler(BaseHTTPRequestHandler):
         elif route == "/og-image.png":
             self._send_file(os.path.join(HERE, "og-image.png"), "image/png",
                             cache_control="public, max-age=86400")
+        elif route == "/world":
+            # The immersive world map. Config-driven: 404s cleanly on deployments
+            # that removed WORLD_AREAS from domain.py (engine stays domain-agnostic).
+            if not getattr(domain, "WORLD_AREAS", None):
+                self.send_error(404, "Not found")
+                return
+            self._send_file(os.path.join(HERE, "world.html"), "text/html; charset=utf-8",
+                            cache_control="public, max-age=300")
         elif route == "/privacy":
             self._send_file(os.path.join(HERE, "privacy.html"), "text/html; charset=utf-8",
                             cache_control="public, max-age=3600")
@@ -526,6 +536,11 @@ class Handler(BaseHTTPRequestHandler):
                             cache_control="public, max-age=3600")
         elif route == "/api/taxonomy":
             self._send_json(domain.TAXONOMY, headers={"Cache-Control": "public, max-age=3600"})
+        elif route == "/api/world":
+            self._send_json({"name": getattr(domain, "WORLD_NAME", domain.SITE_NAME),
+                             "tagline": getattr(domain, "WORLD_TAGLINE", ""),
+                             "areas": getattr(domain, "WORLD_AREAS", [])},
+                            headers={"Cache-Control": "public, max-age=3600"})
         elif route == "/api/stats":
             self._send_json(stats_snapshot(), headers={"Cache-Control": "no-store"})
         elif route == "/api/search":

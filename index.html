@@ -117,6 +117,14 @@
   .masthead h1 em { font-style: normal; color: var(--pink); }
   .masthead .sub { margin: 14px 0 20px; max-width: 40ch; color: var(--mauve); font-size: 15px; }
   .searchbar { display: flex; gap: 10px; max-width: 520px; }
+  /* entrance to the /world map */
+  .worldcta { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
+    padding: 9px 18px; border-radius: 999px; text-decoration: none;
+    background: linear-gradient(105deg, var(--pink) 0%, #ff6fb3 100%); color: #fff;
+    font-size: 13.5px; font-weight: 700; letter-spacing: .02em;
+    box-shadow: 0 8px 22px rgba(224,33,138,.35); transition: transform .15s ease; }
+  .worldcta:hover { transform: translateY(-1px); }
+  .worldcta .arr { font-weight: 400; }
   .search-wrap { position: relative; flex: 1; }
   .search-wrap input {
     width: 100%; font-family: var(--sans); font-size: 16px; color: var(--ink);
@@ -500,6 +508,7 @@
         </div>
         <button class="go" onclick="runSearch()">Search</button>
       </div>
+      <a class="worldcta" href="/world">🌍 Explore Barbie World — the catalog as a town you can wander <span class="arr">→</span></a>
     </div>
   </div>
 </section>

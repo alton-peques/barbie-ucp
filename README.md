@@ -57,6 +57,9 @@ The engine is small but production-hardened (it runs dollscout.com):
 - **Polished UI**: suggestion dropdown, typewriter placeholder, quick-view modal with
   gallery, localStorage wishlist, client-side sort, infinite scroll, mobile filter
   bottom-sheet, `prefers-reduced-motion` support
+- **An explorable world** (`/world`): the catalog rendered as a 3D island town — each
+  themed district is populated live from a UCP search, every doll stands as a tappable
+  figure with a detail card and buy-now link. Pure CSS 3D, no libraries, desktop + touch
 - **Observability**: `/api/stats` with cache hit rate and p50/p95 search latency
 
 ## Quickstart
@@ -89,6 +92,7 @@ browser (index.html) → /api/search → app.py builds UCP input
 | `app.py` | The engine: HTTP server, cache, rate limiting, SEO routes, security headers, UCP subprocess glue. Domain-agnostic; you should never need to edit it. |
 | `domain.py` | **The entire domain configuration.** Brand terms, query anchor, taxonomy chips, popular queries, site origin, meta templates. Retargeting starts here. |
 | `index.html` | Single-file vanilla-JS UI. Brand copy is isolated in six fenced `BRAND BLOCK` regions. |
+| `world.html` | The explorable world map served at `/world`. Districts, their search queries, and their placement come from `WORLD_AREAS` in `domain.py` via `/api/world`; brand copy sits in fenced `BRAND BLOCK W1–W5` regions. Deleting `WORLD_AREAS` disables the route. |
 | `privacy.html`, `terms.html` | DollScout's real legal pages. **Replace with your own** (see RETARGETING.md). |
 | `og-image.png` | 1200×630 social share card. Replace with your own. |
 | `Dockerfile`, `fly.toml` | Fly.io deployment (Node for the CLI + Python for the app in one image). |
