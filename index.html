@@ -303,126 +303,151 @@
     vertical-align: -1px; border: 2px solid var(--line); border-top-color: var(--pink-deep);
     border-radius: 50%; animation: spin .7s linear infinite; }
 
-  /* ---------- SKELETON (holds rack space while a search is in flight) ---------- */
-  .card.sk { pointer-events: none; }
+  /* ---------- SKELETON (holds shelf space while a search is in flight) ---------- */
+  .card.sk { pointer-events: none; filter: none; }
   .sk .card-img, .sk-line { background:
-    linear-gradient(100deg, rgba(255,255,255,.55) 30%, rgba(255,255,255,.8) 50%, rgba(255,255,255,.55) 70%);
-    background-size: 200% 100%; animation: shimmer 1.3s ease-in-out infinite; border-radius: 8px; }
-  .sk .card-img { height: 78%; }
+    linear-gradient(100deg, rgba(255,255,255,.05) 30%, rgba(255,255,255,.13) 50%, rgba(255,255,255,.05) 70%);
+    background-size: 200% 100%; animation: shimmer 1.3s ease-in-out infinite; border-radius: 12px; }
+  .sk .card-img::before, .sk .card-img::after { display: none; }
   .sk-line { height: 11px; border-radius: 2px; margin-top: 9px; }
   .sk-sm { width: 42%; } .sk-lg { width: 85%; height: 15px; } .sk-md { width: 56%; }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
-  /* ---------- THE STORE (results as lit shelf racks in the aisle) ---------- */
-  /* The aisle photograph sits fixed behind the whole page; sections that aren't
-     the store (hero, controls, about, footer) keep their own opaque backgrounds,
-     so the aisle only shows through in the results area. */
-  body::before { content: ""; position: fixed; inset: 0; z-index: -1;
-    background: url('/assets/aisle.jpg') center 30% / cover no-repeat #f0dbe4; }
-  .store { position: relative; padding: 4px 0 44px; }
-  .store::before { content: ""; position: absolute; inset: 0; pointer-events: none;
-    background:
-      linear-gradient(180deg, rgba(26,16,19,.28) 0, rgba(26,16,19,0) 90px),
-      radial-gradient(120% 90% at 50% 40%, rgba(26,16,19,0) 55%, rgba(26,16,19,.30) 100%); }
-  .store > .wrap { position: relative; }
-  /* readability chips for text sitting on the aisle photo */
-  .store .count { display: inline-block; background: rgba(255,252,250,.88); border-radius: 999px;
-    padding: 8px 16px; margin: 20px 0 4px; box-shadow: 0 4px 18px -8px rgba(26,16,19,.5); }
-  .store .likebar.on, .store .activefilters.on { background: rgba(255,252,250,.88);
-    border-radius: 12px; padding: 12px 16px; margin-top: 16px;
-    box-shadow: 0 4px 18px -8px rgba(26,16,19,.5); }
+  /* ---------- THE STORE (a full-screen wall of lit shelves, Al's-Toy-Barn style) ---------- */
+  /* No hero, no search, no filter bar: opening the page puts you straight
+     inside the shelf capsule. The engine's search plumbing stays in the DOM
+     (hidden) so deep links, wishlist, and "more like this" keep working. */
+  .welcomemat, .hero, .controls { display: none !important; }
+  body { background: #140811; }
+  .store { position: relative; padding: 0; background: #1b0a14; }
+  .store .wrap { max-width: none; padding: 0; }
+  /* floating storefront header over the top shelf */
+  .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+    display: flex; align-items: baseline; gap: 14px; padding: 12px 20px 26px;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(16,4,11,.88) 0%, rgba(16,4,11,.45) 55%, rgba(16,4,11,0) 100%); }
+  .topbar .tb-mark { font-family: var(--script); font-weight: 700; font-size: 30px; color: #fff;
+    line-height: 1; text-shadow: 0 2px 14px rgba(224,33,138,.55); }
+  .topbar .tb-mark em { font-style: normal; color: var(--pink); }
+  .topbar .tb-sub { font-size: 10px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase;
+    color: #e8c3d6; }
+  .topbar .tb-saved { pointer-events: auto; margin-left: auto; border: 1px solid rgba(255,255,255,.45);
+    background: rgba(16,4,11,.55); color: #fff; border-radius: 999px; padding: 7px 14px;
+    font: 600 12px var(--sans); letter-spacing: .06em; cursor: pointer; }
+  .topbar .tb-saved:hover, .topbar .tb-saved.on { background: var(--pink-deep); border-color: var(--pink-deep); }
+  @media (max-width: 640px) { .topbar .tb-sub { display: none; } }
+  /* status + banners float over the scene */
+  .store .count { position: fixed; left: 14px; bottom: 12px; z-index: 35; margin: 0;
+    background: rgba(16,4,11,.78); color: #e8c3d6; border-radius: 999px; padding: 8px 15px;
+    box-shadow: 0 4px 18px -8px rgba(0,0,0,.8); }
+  .store .count b { color: #fff; }
+  .store .likebar.on, .store .activefilters.on { position: fixed; top: 58px; left: 50%;
+    transform: translateX(-50%); z-index: 35; max-width: calc(100vw - 28px);
+    background: rgba(16,4,11,.85); border-radius: 999px; padding: 9px 10px 9px 18px;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,.8); }
+  .store .likebar .txt { color: #e8c3d6; }
+  .store .likebar .txt b { color: #fff; }
+  .store .likebar .x { background: rgba(255,255,255,.12); border-color: transparent;
+    color: #fff; border-radius: 999px; }
 
-  /* ---------- RACK (one shelf bay: lighting above, plank below, dolls between) ---------- */
-  /* Each rack settles into the aisle as you walk (scroll) deeper into the store. */
-  @keyframes rackin { from { opacity: 0; transform: translateY(30px) scale(.985); } }
-  .rack { animation: rackin .65s cubic-bezier(.2,.7,.2,1) both;
-    animation-delay: calc(var(--d, 0) * 90ms); }
-  .rack { position: relative; margin: 30px 0 40px; border-radius: 16px;
-    background: linear-gradient(180deg, rgba(93,29,58,.30) 0%, rgba(122,42,77,.22) 30%, rgba(64,18,39,.38) 100%);
-    box-shadow:
-      0 44px 70px -34px rgba(46,8,26,.75),                       /* rack drops shadow into the aisle */
-      inset 0 0 0 1.5px rgba(255,214,182,.35),                   /* rose-gold frame hairline */
-      inset 0 26px 60px -18px rgba(255,235,215,.28);             /* light spill from the tube */
-    isolation: isolate; }
-  /* ceiling light tube + repeating spotlight pools washing down the bay */
-  .rack::before { content: ""; position: absolute; inset: 0; z-index: 0; border-radius: inherit;
-    pointer-events: none; overflow: hidden;
+  /* ---------- SHELF (one full-bleed level of the wall) ---------- */
+  /* Shelves stack edge-to-edge with no gaps: the viewport IS the shelf unit.
+     Each level: dark spotlit bay photograph behind, boxes standing on the
+     lit plank, deep shadow where this shelf meets the one below. */
+  @keyframes rackin { from { opacity: 0; } }
+  .rack { animation: rackin .8s ease both; animation-delay: calc(var(--d, 0) * 110ms); }
+  .rack { position: relative; margin: 0; isolation: isolate;
+    background: url('/assets/bay.jpg') center / cover #1b0a14; }
+  .rack + .rack { border-top: 0; }
+  /* hyper-real light pass: warm spotlight pools + side falloff + plank bounce */
+  .rack::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
     background:
-      linear-gradient(180deg, rgba(255,246,231,.95) 0, rgba(255,246,231,.28) 5px, rgba(255,246,231,0) 9px),
-      radial-gradient(140px 340px at 50% -30px, rgba(255,238,214,.42), rgba(255,238,214,0) 72%) 0 0 / 236px 100% repeat-x; }
-  /* hanging aisle sign */
-  .aisle-sign { position: absolute; z-index: 3; top: -13px; left: 50%; transform: translateX(-50%);
-    background: var(--paper); color: var(--ink); border-radius: 999px; padding: 6px 18px 7px;
-    font-family: var(--script); font-weight: 700; font-size: 19px; line-height: 1; white-space: nowrap;
-    box-shadow: 0 8px 20px -8px rgba(26,16,19,.6), inset 0 0 0 1px rgba(176,134,60,.45); }
-  .aisle-sign b { color: var(--pink-deep); font-weight: 700; }
-  /* the aisle extends past the viewport: walk it side to side */
+      radial-gradient(190px 420px at 50% -40px, rgba(255,224,196,.30), rgba(255,224,196,0) 74%) 0 0 / 300px 100% repeat-x,
+      linear-gradient(90deg, rgba(10,2,7,.55) 0%, rgba(10,2,7,0) 12%, rgba(10,2,7,0) 88%, rgba(10,2,7,.55) 100%),
+      linear-gradient(0deg, rgba(255,170,205,.14) 0%, rgba(255,170,205,0) 26%); }
+  /* the dark meeting line between shelf levels */
+  .rack::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 26px;
+    z-index: 2; pointer-events: none;
+    background: linear-gradient(180deg, rgba(8,1,5,0), rgba(8,1,5,.85)); }
   .rack-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
-    scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; border-radius: inherit; }
+    scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
   .rack-scroll::-webkit-scrollbar { display: none; }
   .rackrow { position: relative; display: flex; align-items: flex-end; gap: 30px;
-    width: max-content; min-width: 100%; padding: 52px 40px 98px;
-    background: url('/assets/shelf.png') left bottom / auto 104px repeat-x; }
+    width: max-content; min-width: 100%; padding: 46px 42px 60px;
+    background: url('/assets/shelf.png') left bottom / auto 102px repeat-x; }
   /* desktop rack paddles */
-  .rack-nav { position: absolute; z-index: 4; top: 42%; width: 40px; height: 40px; border: 0;
-    border-radius: 50%; cursor: pointer; background: rgba(255,252,250,.92); color: var(--ink);
-    font-size: 18px; line-height: 1; box-shadow: 0 6px 18px -6px rgba(26,16,19,.7);
-    opacity: 0; transition: opacity .2s ease; }
-  .rack-nav.prev { left: 10px; } .rack-nav.next { right: 10px; }
+  .rack-nav { position: absolute; z-index: 4; top: 40%; width: 42px; height: 42px; border: 0;
+    border-radius: 50%; cursor: pointer; background: rgba(16,4,11,.62); color: #fff;
+    font-size: 19px; line-height: 1; box-shadow: 0 6px 18px -6px rgba(0,0,0,.8),
+    inset 0 0 0 1px rgba(255,255,255,.3); opacity: 0; transition: opacity .2s ease; }
+  .rack-nav.prev { left: 12px; } .rack-nav.next { right: 12px; }
   .rack:hover .rack-nav, .rack-nav:focus-visible { opacity: 1; }
-  .rack-nav:hover { background: #fff; color: var(--pink-deep); }
+  .rack-nav:hover { background: var(--pink-deep); }
   @media (hover: none) { .rack-nav { display: none; } }
 
-  /* ---------- PRODUCT (a doll standing on the plank, tag on the shelf edge) ---------- */
-  .card { position: relative; flex: none; width: 196px; scroll-snap-align: center;
-    display: flex; flex-direction: column; justify-content: flex-end; height: 268px;
-    margin-bottom: -8px;                                          /* feet overlap the plank top */
-    transition: transform .28s cubic-bezier(.2,.7,.2,1); z-index: 1; }
-  .card:hover { transform: translateY(-9px); z-index: 2; }
-  .card-img { position: relative; height: 100%; }
-  .card-img-link { display: block; width: 100%; height: 100%; line-height: 0; position: relative; z-index: 1;
+  /* ---------- PRODUCT (every doll inside the same boxed packaging) ---------- */
+  /* box.webp is a real generated doll box whose die-cut window was made
+     transparent; the product photo sits behind it and shows through the arch.
+     Window geometry (measured from the asset): x 15.3–84.5%, y 8.3–91.1%. */
+  .card { position: relative; flex: none; width: var(--boxw, 188px); scroll-snap-align: center;
+    aspect-ratio: 440 / 782; margin-bottom: -6px;                 /* box base meets the plank */
+    transition: transform .28s cubic-bezier(.2,.7,.2,1); z-index: 1;
+    filter: drop-shadow(0 26px 20px rgba(5,0,3,.72)) drop-shadow(0 4px 6px rgba(5,0,3,.5)); }
+  .card:hover { transform: translateY(-10px) scale(1.02); z-index: 2;
+    filter: drop-shadow(0 34px 26px rgba(5,0,3,.75)) drop-shadow(0 0 30px rgba(255,140,195,.35)); }
+  .card-img { position: absolute; inset: 0; }
+  .card-img-link { display: block; position: absolute; inset: 0; z-index: 1; line-height: 0;
     border: 0; padding: 0; background: none; cursor: pointer; }
-  .card-img img { width: 100%; height: 100%; object-fit: contain; object-position: bottom;
-    display: block; position: relative; z-index: 1; opacity: 0; border-radius: 8px;
-    transition: opacity .5s ease, filter .35s ease;
-    /* standing in the spotlight: warm key light + contact shadow onto the plank */
-    filter: drop-shadow(0 22px 16px rgba(46,8,26,.55)) drop-shadow(0 2px 4px rgba(46,8,26,.4)); }
+  /* the doll, seen through the window */
+  .card-img img { position: absolute; left: 15.3%; top: 8.3%; width: 69.2%; height: 82.8%;
+    object-fit: cover; object-position: center top; display: block; opacity: 0;
+    background: linear-gradient(180deg, #fdeef6, #f6d7e6); transition: opacity .5s ease; }
   .card-img img.loaded { opacity: 1; }
-  .card:hover .card-img img { filter: drop-shadow(0 30px 22px rgba(46,8,26,.6))
-    drop-shadow(0 0 26px rgba(255,214,182,.55)); }
-  /* glossy plank reflection under each doll */
-  .card-img::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -30px; height: 30px;
-    z-index: 0; background: linear-gradient(180deg, rgba(255,255,255,.30), rgba(255,255,255,0) 78%);
-    border-radius: 50% / 12px; filter: blur(3px); }
-  /* shelf-edge price tag hanging off the plank */
-  .tag { position: absolute; z-index: 3; top: calc(100% + 9px); left: 8px; right: 8px;
-    background: var(--paper); border-radius: 6px; padding: 5px 8px 6px; text-align: left;
-    box-shadow: 0 8px 18px -8px rgba(26,16,19,.65), inset 0 0 0 1px rgba(228,213,219,.9); }
-  .tag::before { content: ""; position: absolute; top: -9px; left: 50%; width: 2px; height: 9px;
-    transform: translateX(-50%); background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(122,91,36,.6)); }
-  .tag .house { font-size: 8.5px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
-    color: var(--mauve); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tag .name { font-family: var(--serif); font-size: 12px; line-height: 1.22; margin: 2px 0 3px;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    min-height: 2.44em; }
+  /* box interior shading + cellophane glint over the photo, under the frame */
+  .card-img-link::before { content: ""; position: absolute; left: 15.3%; top: 8.3%;
+    width: 69.2%; height: 82.8%; z-index: 2; pointer-events: none;
+    background:
+      linear-gradient(115deg, rgba(255,255,255,0) 42%, rgba(255,255,255,.20) 47%, rgba(255,255,255,0) 55%),
+      linear-gradient(180deg, rgba(46,8,26,.22), rgba(46,8,26,0) 22%),
+      linear-gradient(0deg, rgba(46,8,26,.22), rgba(46,8,26,0) 20%); }
+  /* the box itself, over everything */
+  .card-img::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+    background: url('/assets/box.webp') center / 100% 100% no-repeat; }
+  /* warm shelf-light kiss on the box top */
+  .card-img::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,228,200,.20), rgba(255,228,200,0) 30%); }
+  .wish, .buyover { z-index: 5; }
+  /* shelf-edge price tag on the plank below each box */
+  .tag { position: absolute; z-index: 5; top: calc(100% + 12px); left: 6%; right: 6%;
+    background: #fffdf9; border-radius: 4px; padding: 4px 8px 5px; text-align: left;
+    box-shadow: 0 6px 16px -6px rgba(0,0,0,.85), inset 0 0 0 1px rgba(228,213,219,.9); }
+  .tag .house { display: none; }
+  .tag .name { font-family: var(--serif); font-size: 11px; line-height: 1.2; margin: 0 0 2px;
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
   .tag .name-link { color: inherit; text-decoration: none; }
   .tag .name-link:hover { color: var(--pink-deep); }
   .tag .pricerow { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-  .tag .price { font-family: var(--serif); font-size: 15px; font-weight: 600; color: var(--pink-deep); }
-  .tag .rate { font-size: 9px; color: var(--bronze); letter-spacing: .08em; white-space: nowrap; }
+  .tag .price { font-family: var(--serif); font-size: 14px; font-weight: 600; color: var(--pink-deep); }
+  .tag .rate { font-size: 8.5px; color: var(--bronze); letter-spacing: .08em; white-space: nowrap; }
 
+  /* density: ~2.5–3 shelf levels per screen, like a real wall of stock */
+  :root { --boxw: clamp(132px, 15.5vh, 178px); }
   @media (max-width: 720px) {
-    .card { width: 156px; height: 216px; }
-    .rackrow { gap: 22px; padding: 40px 22px 96px; background-size: auto 96px; }
-    .aisle-sign { font-size: 16px; }
-    body::before { background-position: center 22%; }
+    :root { --boxw: clamp(118px, 31vw, 150px); }
+    .rackrow { gap: 22px; padding: 38px 22px 54px; background-size: auto 92px; }
+    .tag { top: calc(100% + 9px); }
   }
+  /* the wall is uniform boxes: buying happens in the pop-up, so no overlay CTA */
+  .buyover { display: none; }
+  .wish { width: 28px; height: 28px; font-size: 14px; top: 6px; right: 6px;
+    background: rgba(255,255,255,.72); }
 
-  .more { display: block; margin: 40px auto 0; background: transparent; border: 1px solid var(--ink);
-    color: var(--ink); font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: .18em;
+  .more { display: block; margin: 26px auto 30px; background: transparent;
+    border: 1px solid rgba(255,255,255,.55); color: #fff; font-family: var(--sans);
+    font-size: 11px; font-weight: 600; letter-spacing: .18em;
     text-transform: uppercase; padding: 14px 32px; cursor: pointer; }
-  .more:hover { background: var(--ink); color: var(--porcelain); }
+  .more:hover { background: var(--pink-deep); border-color: var(--pink-deep); }
 
   /* ---------- ABOUT / LEGAL ---------- */
   /* Opaque: the about/footer block sits over the fixed aisle photo. */
@@ -556,7 +581,17 @@
 </head>
 <body>
 
-<!-- ═══ BRAND BLOCK 2/6: welcome mat + hero (wordmark, tagline, search placeholder) ═══ --><div class="welcomemat">The Unofficial Barbie Finder</div>
+<!-- Floating storefront header: the only chrome over the shelf wall. -->
+<header class="topbar">
+  <span class="tb-mark">Doll<em>Scout</em></span>
+  <span class="tb-sub">The Unofficial Barbie Store</span>
+  <button class="tb-saved" id="tbsaved" type="button" onclick="openWishlist()">♥ Saved</button>
+</header>
+
+<!-- ═══ BRAND BLOCK 2/6: welcome mat + hero (wordmark, tagline, search placeholder) ═══
+     Hidden in the store experience (display:none) but kept in the DOM: the engine's
+     search/filter plumbing still drives deep links, wishlist, and similarity. -->
+<div class="welcomemat">The Unofficial Barbie Finder</div>
 
 <section class="hero">
   <div class="wrap hero-grid">
@@ -1128,16 +1163,12 @@ function cardHTML(c) {
 }
 
 // ----- Racks: results are shelved in bays of RACK_SIZE, like aisles in a store -----
-const RACK_SIZE = 8;
+const RACK_SIZE = 12;
 function rackHTML(cards, rackIdx) {
-  const start = rackIdx * RACK_SIZE + 1;
-  const sign = wishMode
-    ? `Saved ${NOUNS} · <b>aisle ${rackIdx + 1}</b>`
-    : `Aisle ${rackIdx + 1} · <b>${NOUNS} ${start}–${start + cards.length - 1}</b>`;
-  return `<section class="rack" style="--d:${Math.min(rackIdx, 5)}">
-    <div class="aisle-sign">${sign}</div>
-    <button class="rack-nav prev" type="button" aria-label="Scroll this rack left">‹</button>
-    <button class="rack-nav next" type="button" aria-label="Scroll this rack right">›</button>
+  return `<section class="rack" style="--d:${Math.min(rackIdx, 4)}"
+      aria-label="Shelf ${rackIdx + 1}">
+    <button class="rack-nav prev" type="button" aria-label="Scroll this shelf left">‹</button>
+    <button class="rack-nav next" type="button" aria-label="Scroll this shelf right">›</button>
     <div class="rack-scroll"><div class="rackrow">${cards.map(cardHTML).join('')}</div></div>
   </section>`;
 }
@@ -1162,7 +1193,7 @@ function wishCountHTML() {
 }
 function updateSavedBtn() {
   const label = '♥ Saved' + (wishlist.length ? ' · ' + wishlist.length : '');
-  ['savedbtn', 'msaved'].forEach(id => {          // desktop sticky-bar + mobile toolbar
+  ['savedbtn', 'msaved', 'tbsaved'].forEach(id => {   // hidden bars + the storefront topbar
     const b = document.getElementById(id);
     if (!b) return;
     b.innerHTML = label;
@@ -1394,8 +1425,7 @@ async function fetchPage(cursor, append) {
 }
 
 function scrollToResults() {
-  const el = document.querySelector('.controls');
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });   // shelves start at the top of the page
 }
 // ----- Shareable URL state: reflect query + chips + price + stock in the address bar -----
 function syncURL() {

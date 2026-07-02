@@ -57,9 +57,11 @@ The engine is small but production-hardened (it runs dollscout.com):
 - **Polished UI**: suggestion dropdown, typewriter placeholder, quick-view modal with
   gallery, localStorage wishlist, client-side sort, infinite scroll, mobile filter
   bottom-sheet, `prefers-reduced-motion` support
-- **Immersive store-shelf results**: the results area is styled as the inside of a
-  boutique — a photographic aisle backdrop, results shelved in lit racks (an "aisle"
-  per row) with shelf-edge price tags, side-scrollable on touch and desktop
+- **Immersive store-shelf experience**: opening the site puts you inside a dark,
+  spotlit toy-store wall — every product sits in the same generated doll-box
+  packaging on stacked, full-bleed shelves with shelf-edge price tags. Scroll down
+  the wall, side-scroll each shelf, tap a box for the detail pop-up with buy links.
+  No visible search chrome; the deep-link/filter engine still runs underneath
 - **Observability**: `/api/stats` with cache hit rate and p50/p95 search latency
 
 ## Quickstart
@@ -92,7 +94,7 @@ browser (index.html) → /api/search → app.py builds UCP input
 | `app.py` | The engine: HTTP server, cache, rate limiting, SEO routes, security headers, UCP subprocess glue. Domain-agnostic; you should never need to edit it. |
 | `domain.py` | **The entire domain configuration.** Brand terms, query anchor, taxonomy chips, popular queries, site origin, meta templates. Retargeting starts here. |
 | `index.html` | Single-file vanilla-JS UI. Brand copy is isolated in six fenced `BRAND BLOCK` regions. |
-| `assets/` | Store-shelf theme imagery (`aisle.jpg` backdrop, `shelf.png` plank strip), served at `/assets/…`. Swap for your own niche's interior (see RETARGETING.md). |
+| `assets/` | Store theme imagery served at `/assets/…`: `bay.jpg` (dark spotlit shelf-bay back panel), `shelf.png` (plank strip with LED glow), `box.webp` (the doll box with a transparent die-cut window every product sits inside), `aisle.jpg` (spare boutique backdrop). Swap for your own niche (see RETARGETING.md). |
 | `privacy.html`, `terms.html` | DollScout's real legal pages. **Replace with your own** (see RETARGETING.md). |
 | `og-image.png` | 1200×630 social share card. Replace with your own. |
 | `Dockerfile`, `fly.toml` | Fly.io deployment (Node for the CLI + Python for the app in one image). |
