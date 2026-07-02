@@ -74,6 +74,9 @@ These ship as DollScout's real files and MUST be replaced before you deploy:
   operator (Ethercycle LLC). Rewrite them for your operator and brand, or delete the
   `/privacy` and `/terms` routes in `app.py` and the footer links in `index.html`.
 - **`og-image.png`**: 1200×630 social share card.
+- **`assets/aisle.jpg` / `assets/shelf.png`**: the store-shelf theme imagery behind the
+  results (an aisle interior photograph, and a transparent-glow shelf plank strip that
+  tiles horizontally). Generate or shoot equivalents for your niche's store interior.
 - **`screenshots/`**: DollScout UI captures used by the README. Retake them from your
   own deployment (or delete the folder and the README image tags).
 

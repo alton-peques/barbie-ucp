@@ -303,52 +303,121 @@
     vertical-align: -1px; border: 2px solid var(--line); border-top-color: var(--pink-deep);
     border-radius: 50%; animation: spin .7s linear infinite; }
 
-  /* ---------- SKELETON (holds grid space while a search is in flight) ---------- */
+  /* ---------- SKELETON (holds rack space while a search is in flight) ---------- */
   .card.sk { pointer-events: none; }
   .sk .card-img, .sk-line { background:
-    linear-gradient(100deg, var(--porcelain) 30%, #ece2e6 50%, var(--porcelain) 70%);
-    background-size: 200% 100%; animation: shimmer 1.3s ease-in-out infinite; }
+    linear-gradient(100deg, rgba(255,255,255,.55) 30%, rgba(255,255,255,.8) 50%, rgba(255,255,255,.55) 70%);
+    background-size: 200% 100%; animation: shimmer 1.3s ease-in-out infinite; border-radius: 8px; }
+  .sk .card-img { height: 78%; }
   .sk-line { height: 11px; border-radius: 2px; margin-top: 9px; }
   .sk-sm { width: 42%; } .sk-lg { width: 85%; height: 15px; } .sk-md { width: 56%; }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
-  /* ---------- GRID (each product = a card) ---------- */
-  .grid { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(224px, 1fr)); }
-  .card { display: flex; flex-direction: column; background: var(--paper); border: 1px solid var(--line);
-    box-shadow: 0 2px 12px -8px rgba(26,16,19,.4); transition: transform .25s ease, box-shadow .25s ease; }
-  .card:hover { transform: translateY(-4px); box-shadow: 0 16px 34px -20px rgba(26,16,19,.5); }
-  .card-img { aspect-ratio: 4/5; overflow: hidden; background: var(--porcelain); position: relative; }
-  /* LQIP: tiny blurred placeholder behind the image until the full one fades in */
-  .card-img.lqip::before { content: ""; position: absolute; inset: 0; z-index: 0;
-    background-image: var(--lqip); background-size: cover; background-position: center;
-    filter: blur(14px); transform: scale(1.08); }
+  /* ---------- THE STORE (results as lit shelf racks in the aisle) ---------- */
+  /* The aisle photograph sits fixed behind the whole page; sections that aren't
+     the store (hero, controls, about, footer) keep their own opaque backgrounds,
+     so the aisle only shows through in the results area. */
+  body::before { content: ""; position: fixed; inset: 0; z-index: -1;
+    background: url('/assets/aisle.jpg') center 30% / cover no-repeat #f0dbe4; }
+  .store { position: relative; padding: 4px 0 44px; }
+  .store::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(26,16,19,.28) 0, rgba(26,16,19,0) 90px),
+      radial-gradient(120% 90% at 50% 40%, rgba(26,16,19,0) 55%, rgba(26,16,19,.30) 100%); }
+  .store > .wrap { position: relative; }
+  /* readability chips for text sitting on the aisle photo */
+  .store .count { display: inline-block; background: rgba(255,252,250,.88); border-radius: 999px;
+    padding: 8px 16px; margin: 20px 0 4px; box-shadow: 0 4px 18px -8px rgba(26,16,19,.5); }
+  .store .likebar.on, .store .activefilters.on { background: rgba(255,252,250,.88);
+    border-radius: 12px; padding: 12px 16px; margin-top: 16px;
+    box-shadow: 0 4px 18px -8px rgba(26,16,19,.5); }
+
+  /* ---------- RACK (one shelf bay: lighting above, plank below, dolls between) ---------- */
+  /* Each rack settles into the aisle as you walk (scroll) deeper into the store. */
+  @keyframes rackin { from { opacity: 0; transform: translateY(30px) scale(.985); } }
+  .rack { animation: rackin .65s cubic-bezier(.2,.7,.2,1) both;
+    animation-delay: calc(var(--d, 0) * 90ms); }
+  .rack { position: relative; margin: 30px 0 40px; border-radius: 16px;
+    background: linear-gradient(180deg, rgba(93,29,58,.30) 0%, rgba(122,42,77,.22) 30%, rgba(64,18,39,.38) 100%);
+    box-shadow:
+      0 44px 70px -34px rgba(46,8,26,.75),                       /* rack drops shadow into the aisle */
+      inset 0 0 0 1.5px rgba(255,214,182,.35),                   /* rose-gold frame hairline */
+      inset 0 26px 60px -18px rgba(255,235,215,.28);             /* light spill from the tube */
+    isolation: isolate; }
+  /* ceiling light tube + repeating spotlight pools washing down the bay */
+  .rack::before { content: ""; position: absolute; inset: 0; z-index: 0; border-radius: inherit;
+    pointer-events: none; overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(255,246,231,.95) 0, rgba(255,246,231,.28) 5px, rgba(255,246,231,0) 9px),
+      radial-gradient(140px 340px at 50% -30px, rgba(255,238,214,.42), rgba(255,238,214,0) 72%) 0 0 / 236px 100% repeat-x; }
+  /* hanging aisle sign */
+  .aisle-sign { position: absolute; z-index: 3; top: -13px; left: 50%; transform: translateX(-50%);
+    background: var(--paper); color: var(--ink); border-radius: 999px; padding: 6px 18px 7px;
+    font-family: var(--script); font-weight: 700; font-size: 19px; line-height: 1; white-space: nowrap;
+    box-shadow: 0 8px 20px -8px rgba(26,16,19,.6), inset 0 0 0 1px rgba(176,134,60,.45); }
+  .aisle-sign b { color: var(--pink-deep); font-weight: 700; }
+  /* the aisle extends past the viewport: walk it side to side */
+  .rack-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
+    scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; border-radius: inherit; }
+  .rack-scroll::-webkit-scrollbar { display: none; }
+  .rackrow { position: relative; display: flex; align-items: flex-end; gap: 30px;
+    width: max-content; min-width: 100%; padding: 52px 40px 98px;
+    background: url('/assets/shelf.png') left bottom / auto 104px repeat-x; }
+  /* desktop rack paddles */
+  .rack-nav { position: absolute; z-index: 4; top: 42%; width: 40px; height: 40px; border: 0;
+    border-radius: 50%; cursor: pointer; background: rgba(255,252,250,.92); color: var(--ink);
+    font-size: 18px; line-height: 1; box-shadow: 0 6px 18px -6px rgba(26,16,19,.7);
+    opacity: 0; transition: opacity .2s ease; }
+  .rack-nav.prev { left: 10px; } .rack-nav.next { right: 10px; }
+  .rack:hover .rack-nav, .rack-nav:focus-visible { opacity: 1; }
+  .rack-nav:hover { background: #fff; color: var(--pink-deep); }
+  @media (hover: none) { .rack-nav { display: none; } }
+
+  /* ---------- PRODUCT (a doll standing on the plank, tag on the shelf edge) ---------- */
+  .card { position: relative; flex: none; width: 196px; scroll-snap-align: center;
+    display: flex; flex-direction: column; justify-content: flex-end; height: 268px;
+    margin-bottom: -8px;                                          /* feet overlap the plank top */
+    transition: transform .28s cubic-bezier(.2,.7,.2,1); z-index: 1; }
+  .card:hover { transform: translateY(-9px); z-index: 2; }
+  .card-img { position: relative; height: 100%; }
   .card-img-link { display: block; width: 100%; height: 100%; line-height: 0; position: relative; z-index: 1;
     border: 0; padding: 0; background: none; cursor: pointer; }
-  .card-img img { width: 100%; height: 100%; object-fit: cover; display: block; position: relative;
-    z-index: 1; opacity: 0; transition: transform .5s ease, opacity .5s ease; }
+  .card-img img { width: 100%; height: 100%; object-fit: contain; object-position: bottom;
+    display: block; position: relative; z-index: 1; opacity: 0; border-radius: 8px;
+    transition: opacity .5s ease, filter .35s ease;
+    /* standing in the spotlight: warm key light + contact shadow onto the plank */
+    filter: drop-shadow(0 22px 16px rgba(46,8,26,.55)) drop-shadow(0 2px 4px rgba(46,8,26,.4)); }
   .card-img img.loaded { opacity: 1; }
-  .card:hover .card-img img { transform: scale(1.05); }
-  .card-img::after { content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 0;
-    z-index: 2; background: var(--gold); transition: width .45s ease; }
-  .card:hover .card-img::after { width: 100%; }
-  .card-body { padding: 13px 15px 15px; display: flex; flex-direction: column; gap: 5px; flex: 1; }
-  .card .house { font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--mauve); }
-  .card .name { font-family: var(--serif); font-size: 16px; line-height: 1.2; }
-  .card .name-link { color: inherit; text-decoration: none; }
-  .card .name-link:hover { color: var(--pink-deep); text-decoration: underline; text-underline-offset: 2px; }
-  .card .price { font-family: var(--serif); font-size: 18px; color: var(--pink-deep); }
-  .card .rate { font-size: 11px; color: var(--bronze); letter-spacing: .1em; }
-  .card .links { margin-top: auto; padding-top: 11px; border-top: 1px solid var(--line);
-    display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-size: 10px; font-weight: 600;
-    letter-spacing: .1em; text-transform: uppercase; }
-  .card .links a { text-decoration: none; }
-  .card .links a.pdp { border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
-  .card .links a.pdp:hover { border-color: var(--pink-deep); color: var(--pink-deep); }
-  .card .links a.buy { color: var(--pink-deep); border-bottom: 1px solid var(--pink-deep); padding-bottom: 2px; }
-  .card .links a.mlt { color: var(--bronze); border-bottom: 1px solid var(--bronze); padding-bottom: 2px; }
-  .card .links a.mlt:hover { color: var(--pink-deep); border-color: var(--pink-deep); }
+  .card:hover .card-img img { filter: drop-shadow(0 30px 22px rgba(46,8,26,.6))
+    drop-shadow(0 0 26px rgba(255,214,182,.55)); }
+  /* glossy plank reflection under each doll */
+  .card-img::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -30px; height: 30px;
+    z-index: 0; background: linear-gradient(180deg, rgba(255,255,255,.30), rgba(255,255,255,0) 78%);
+    border-radius: 50% / 12px; filter: blur(3px); }
+  /* shelf-edge price tag hanging off the plank */
+  .tag { position: absolute; z-index: 3; top: calc(100% + 9px); left: 8px; right: 8px;
+    background: var(--paper); border-radius: 6px; padding: 5px 8px 6px; text-align: left;
+    box-shadow: 0 8px 18px -8px rgba(26,16,19,.65), inset 0 0 0 1px rgba(228,213,219,.9); }
+  .tag::before { content: ""; position: absolute; top: -9px; left: 50%; width: 2px; height: 9px;
+    transform: translateX(-50%); background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(122,91,36,.6)); }
+  .tag .house { font-size: 8.5px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--mauve); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tag .name { font-family: var(--serif); font-size: 12px; line-height: 1.22; margin: 2px 0 3px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    min-height: 2.44em; }
+  .tag .name-link { color: inherit; text-decoration: none; }
+  .tag .name-link:hover { color: var(--pink-deep); }
+  .tag .pricerow { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .tag .price { font-family: var(--serif); font-size: 15px; font-weight: 600; color: var(--pink-deep); }
+  .tag .rate { font-size: 9px; color: var(--bronze); letter-spacing: .08em; white-space: nowrap; }
+
+  @media (max-width: 720px) {
+    .card { width: 156px; height: 216px; }
+    .rackrow { gap: 22px; padding: 40px 22px 96px; background-size: auto 96px; }
+    .aisle-sign { font-size: 16px; }
+    body::before { background-position: center 22%; }
+  }
 
   .more { display: block; margin: 40px auto 0; background: transparent; border: 1px solid var(--ink);
     color: var(--ink); font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: .18em;
@@ -356,7 +425,9 @@
   .more:hover { background: var(--ink); color: var(--porcelain); }
 
   /* ---------- ABOUT / LEGAL ---------- */
-  .about { border-top: 1px solid var(--gold); margin-top: 60px; padding: 34px 0 4px; }
+  /* Opaque: the about/footer block sits over the fixed aisle photo. */
+  .about { border-top: 1px solid var(--gold); margin-top: 0; padding: 34px 0 4px;
+    background: var(--porcelain); box-shadow: 0 -18px 40px -20px rgba(26,16,19,.5); }
   .about .eyebrow { display: block; margin-bottom: 18px; }
   .about-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px 60px; max-width: 1000px; }
   .about-col p { margin: 0 0 14px; font-size: 13px; line-height: 1.65; color: var(--mauve); }
@@ -366,7 +437,8 @@
   .about-col .disclaimer { color: var(--ink); }
 
   /* ---------- FOOTER ---------- */
-  footer { border-top: 1px solid var(--line); margin-top: 34px; padding: 26px 0 48px; }
+  footer { border-top: 1px solid var(--line); margin-top: 0; padding: 26px 0 48px;
+    background: var(--porcelain); }
   .foot { display: grid; grid-template-columns: 1fr; gap: 24px; }
   .foot .brand-name { font-family: var(--script); font-weight: 700; font-size: 32px; }
   .foot .brand-name em { font-style: normal; color: var(--pink); }
@@ -473,6 +545,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .reveal { animation: none; opacity: 1; transform: none; }
+    .rack { animation: none; }
     .card, .card-img img, .card-img::after, .wish, .buyover { transition: none; }
     .buyover { opacity: 1; transform: none; }
     .card-img img { opacity: 1; }
@@ -532,16 +605,18 @@
   </div>
 </div>
 
-<main class="wrap">
-  <div class="likebar" id="likebar"></div>
-  <div class="likebar" id="wishbar"></div>
-  <div class="activefilters" id="activefilters" aria-label="Active filters"></div>
-  <div class="count" id="count" role="status" aria-live="polite"></div>
-  <div class="grid" id="grid"></div>
-  <div class="morespin" id="morespin" aria-hidden="true" style="display:none"><span class="spinner"></span></div>
-  <div id="sentinel" aria-hidden="true"></div>
-  <button class="more" id="loadmore" style="display:none" onclick="loadMore()">Show more</button>
-</main>
+<div class="store">
+  <main class="wrap">
+    <div class="likebar" id="likebar"></div>
+    <div class="likebar" id="wishbar"></div>
+    <div class="activefilters" id="activefilters" aria-label="Active filters"></div>
+    <div class="count" id="count" role="status" aria-live="polite"></div>
+    <div class="grid" id="grid"></div>
+    <div class="morespin" id="morespin" aria-hidden="true" style="display:none"><span class="spinner"></span></div>
+    <div id="sentinel" aria-hidden="true"></div>
+    <button class="more" id="loadmore" style="display:none" onclick="loadMore()">Show more</button>
+  </main>
+</div>
 
 <!-- ═══ BRAND BLOCK 3/6: About / What & Why (project story, UCP note, trademark disclaimer) ═══ -->
 <section class="about" id="about">
@@ -991,21 +1066,21 @@ function thumbUrl(u, w) {
   return w <= 24 ? '' : u;   // can't shrink a non-Shopify host: skip the LQIP, keep the full img
 }
 
-function skeletonHTML(n = 12) {
-  return `<article class="card sk" aria-hidden="true">
-    <div class="card-img"></div>
-    <div class="card-body">
-      <div class="sk-line sk-sm"></div>
-      <div class="sk-line sk-lg"></div>
-      <div class="sk-line sk-md"></div>
-    </div></article>`.repeat(n);
+function skeletonHTML(racks = 2) {
+  const card = `<article class="card sk" aria-hidden="true"><div class="card-img"></div></article>`;
+  let out = '';
+  for (let i = 0; i < racks; i++) {
+    out += `<section class="rack" style="--d:${i}" aria-hidden="true">
+      <div class="rack-scroll"><div class="rackrow">${card.repeat(RACK_SIZE)}</div></div>
+    </section>`;
+  }
+  return out;
 }
 function cardHTML(c) {
   // Merchant URLs are untrusted third-party data: validate scheme + normalize
   // (blocks javascript: URIs and attribute-breakout chars) before using in href/src.
   const imgSrc = safeUrl(c.img);
-  const full = thumbUrl(imgSrc, 500);      // card-sized image (not the 2000px original)
-  const lqip = thumbUrl(imgSrc, 20);       // tiny blurred placeholder (Shopify only, else '')
+  const full = thumbUrl(imgSrc, 500);      // shelf-sized image (not the 2000px original)
   const pdpUrl = safeUrl(c.pdp), buyUrl = safeUrl(c.buy);
   const link = pdpUrl || buyUrl || null;   // the merchant listing to open on image/title click
   // data-full lets us mark already-loaded imgs as loaded on re-render (no fade flash)
@@ -1033,24 +1108,45 @@ function cardHTML(c) {
     ? `<a class="buyover" href="${buyUrl}" target="_blank" rel="noopener noreferrer"
          aria-label="Buy now: ${esc(c.title)}">Buy now</a>`
     : '';
-  const cardImg = imgTag
-    ? `<div class="card-img${lqip ? ' lqip' : ''}"${lqip ? ` style="--lqip:url('${lqip}')"` : ''}>${img}${wishBtn}${buyOver}</div>`
-    : `<div class="card-img">${img}${wishBtn}${buyOver}</div>`;
+  const cardImg = `<div class="card-img">${img}${wishBtn}${buyOver}</div>`;
   const title = link
     ? `<a class="name-link" href="${link}" target="_blank" rel="noopener noreferrer">${esc(c.title)}</a>`
     : esc(c.title);
-  const pdp = pdpUrl ? `<a class="pdp" href="${pdpUrl}" target="_blank" rel="noopener noreferrer">View</a>` : '';
-  const mlt = c.id ? `<a class="mlt" href="#" data-id="${c.id}" data-title="${esc(c.title)}">More like this</a>` : '';
+  // The doll stands on the plank; her shelf-edge tag hangs below (View / More
+  // like this now live in the quick view, which the photo click opens).
   return `<article class="card">
     ${cardImg}
-    <div class="card-body">
+    <div class="tag">
       <div class="house">${esc(c.seller_name || '')}</div>
       <div class="name">${title}</div>
-      <div class="price">${esc(c.price_display)}</div>
-      ${c.rating != null ? `<div class="rate">${starmarks(c.rating)}</div>` : ''}
-      <div class="links">${pdp}${mlt}</div>
+      <div class="pricerow">
+        <span class="price">${esc((c.price_display || '').replace(/\s*USD$/, ''))}</span>
+        ${c.rating != null ? `<span class="rate">${starmarks(c.rating)}</span>` : ''}
+      </div>
     </div>
   </article>`;
+}
+
+// ----- Racks: results are shelved in bays of RACK_SIZE, like aisles in a store -----
+const RACK_SIZE = 8;
+function rackHTML(cards, rackIdx) {
+  const start = rackIdx * RACK_SIZE + 1;
+  const sign = wishMode
+    ? `Saved ${NOUNS} · <b>aisle ${rackIdx + 1}</b>`
+    : `Aisle ${rackIdx + 1} · <b>${NOUNS} ${start}–${start + cards.length - 1}</b>`;
+  return `<section class="rack" style="--d:${Math.min(rackIdx, 5)}">
+    <div class="aisle-sign">${sign}</div>
+    <button class="rack-nav prev" type="button" aria-label="Scroll this rack left">‹</button>
+    <button class="rack-nav next" type="button" aria-label="Scroll this rack right">›</button>
+    <div class="rack-scroll"><div class="rackrow">${cards.map(cardHTML).join('')}</div></div>
+  </section>`;
+}
+function racksHTML(list, fromRack = 0) {
+  let out = '';
+  for (let i = fromRack * RACK_SIZE; i < list.length; i += RACK_SIZE) {
+    out += rackHTML(list.slice(i, i + RACK_SIZE), i / RACK_SIZE);
+  }
+  return out;
 }
 
 // ----- Wishlist (saved items) -----
@@ -1246,7 +1342,7 @@ function sortCards(list) {
 }
 function currentCards() { return wishMode ? wishlist : visibleCards(); }
 function renderGrid() {
-  document.getElementById('grid').innerHTML = sortCards(currentCards()).map(cardHTML).join('');
+  document.getElementById('grid').innerHTML = racksHTML(sortCards(currentCards()));
 }
 function onSortChange() {
   sortMode = document.getElementById('sort').value;
@@ -1274,7 +1370,11 @@ async function fetchPage(cursor, append) {
     const cards = data.cards || [];
     allCards.push(...cards);
     if (append && sortMode === 'relevance') {
-      grid.insertAdjacentHTML('beforeend', cards.map(cardHTML).join(''));  // flicker-free append
+      // Flicker-free append: racks already walked keep their scroll positions;
+      // only the last (possibly part-filled) rack is rebuilt with the new stock.
+      const racks = grid.querySelectorAll('.rack').length;
+      if (racks) grid.lastElementChild.remove();
+      grid.insertAdjacentHTML('beforeend', racksHTML(sortCards(currentCards()), Math.max(0, racks - 1)));
     } else {
       renderGrid();            // fresh search, or a sorted view where new cards must slot in order
     }
@@ -1414,12 +1514,20 @@ if ('IntersectionObserver' in window) {
     { rootMargin: '600px 0px' }).observe(document.getElementById('sentinel'));
 }
 
-// delegate card clicks: heart (save) and "More like this" (cards re-render on every search)
+// delegate card clicks: heart (save), quick view, and the rack scroll paddles
+// (racks re-render on every search)
 document.getElementById('grid').addEventListener('click', (e) => {
   const w = e.target.closest('.wish');
   if (w) { e.preventDefault(); e.stopPropagation(); toggleWish(w.dataset.id); return; }
   const qv = e.target.closest('[data-qv]');
   if (qv) { e.preventDefault(); openQuick(qv.dataset.qv); return; }
+  const nav = e.target.closest('.rack-nav');
+  if (nav) {
+    const sc = nav.closest('.rack').querySelector('.rack-scroll');
+    sc.scrollBy({ left: (nav.classList.contains('next') ? 1 : -1) * sc.clientWidth * 0.7,
+                  behavior: 'smooth' });
+    return;
+  }
   const a = e.target.closest('.mlt');
   if (!a) return;
   e.preventDefault();

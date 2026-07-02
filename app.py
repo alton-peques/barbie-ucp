@@ -513,6 +513,18 @@ class Handler(BaseHTTPRequestHandler):
         elif route == "/og-image.png":
             self._send_file(os.path.join(HERE, "og-image.png"), "image/png",
                             cache_control="public, max-age=86400")
+        elif route.startswith("/assets/"):
+            # Static theme assets (store-shelf imagery). Name-gated to a flat dir
+            # of known image types; the basename() call blocks any traversal.
+            name = os.path.basename(route)
+            ext = os.path.splitext(name)[1].lower()
+            types = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+                     ".webp": "image/webp", ".svg": "image/svg+xml"}
+            if ext not in types:
+                self.send_error(404, "Not found")
+                return
+            self._send_file(os.path.join(HERE, "assets", name), types[ext],
+                            cache_control="public, max-age=86400")
         elif route == "/privacy":
             self._send_file(os.path.join(HERE, "privacy.html"), "text/html; charset=utf-8",
                             cache_control="public, max-age=3600")
