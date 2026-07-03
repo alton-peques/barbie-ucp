@@ -80,6 +80,9 @@ These ship as DollScout's real files and MUST be replaced before you deploy:
   transparent; if you regenerate it, re-measure the window bounds and update the
   `.card-img img` / `.card-img-link::before` percentages in `index.html`), and
   `aisle.jpg` (spare boutique backdrop). Generate equivalents for your niche.
+  The featured wall only shelves portrait-leaning photos (they crop well inside
+  the box window); tune `FIT_ASPECT` / `FEATURED_MAX` in `index.html` if your
+  niche's product photography skews differently.
 - **`screenshots/`**: DollScout UI captures used by the README. Retake them from your
   own deployment (or delete the folder and the README image tags).
 

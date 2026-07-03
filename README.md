@@ -57,11 +57,14 @@ The engine is small but production-hardened (it runs dollscout.com):
 - **Polished UI**: suggestion dropdown, typewriter placeholder, quick-view modal with
   gallery, localStorage wishlist, client-side sort, infinite scroll, mobile filter
   bottom-sheet, `prefers-reduced-motion` support
-- **Immersive store-shelf experience**: opening the site puts you inside a dark,
-  spotlit toy-store wall — every product sits in the same generated doll-box
-  packaging on stacked, full-bleed shelves with shelf-edge price tags. Scroll down
-  the wall, side-scroll each shelf, tap a box for the detail pop-up with buy links.
-  No visible search chrome; the deep-link/filter engine still runs underneath
+- **Immersive store-shelf experience**: a storefront header (description, search,
+  a filters drawer behind the arrow) sits above a dark, spotlit toy-store wall.
+  The wall *features* a curated selection — only products whose photo sits nicely
+  in the generated doll-box packaging (portrait shots, classified client-side by
+  image aspect) — on stacked, full-bleed shelves with shelf-edge price tags.
+  Scroll the wall, side-scroll each shelf, tap a box for the detail pop-up with
+  buy links; a **View all products** button at the end swaps to a plain grid
+  (no boxes) of the entire catalog with infinite scroll
 - **Observability**: `/api/stats` with cache hit rate and p50/p95 search latency
 
 ## Quickstart
